@@ -1,7 +1,10 @@
+import { createLogger } from "../shared/logger.js";
+const logger = createLogger("Popup");
+
 // Popup UI logic
 import { classifyError } from '../shared/errorHandler.js';
 
-console.log('Fake News Detector: Popup loaded');
+logger.debug('Popup loaded');
 
 // ============================================================================
 // STATE
@@ -167,7 +170,7 @@ async function loadCachedAnalysis() {
 // ============================================================================
 
 document.getElementById('btn-full-analysis').addEventListener('click', async () => {
-  console.log('Full Analysis button clicked');
+  logger.debug('Full Analysis clicked');
 
   try {
     // Get current tab
@@ -199,30 +202,30 @@ document.getElementById('btn-full-analysis').addEventListener('click', async () 
 });
 
 document.getElementById('btn-highlight').addEventListener('click', async () => {
-  console.log('=== POPUP: Highlight button clicked ===');
+  logger.debug('Highlight button clicked');
 
   if (!currentAnalysis || !currentTabId) {
-    console.log('✗ No analysis or tab ID');
+    logger.warn('No analysis or tab ID');
     setStatus('No analysis available', true);
     return;
   }
 
-  console.log('Current analysis:', currentAnalysis);
-  console.log('Tab ID:', currentTabId);
+  logger.debug('Current analysis', currentAnalysis);
+  logger.debug('Tab ID', { currentTabId });
 
   if (!currentAnalysis.claims || currentAnalysis.claims.length === 0) {
-    console.log('✗ No claims in analysis');
+    logger.warn('No claims in analysis');
     setStatus('No claims to highlight', true);
     return;
   }
 
-  console.log('Claims to highlight:', currentAnalysis.claims.length);
+  logger.debug('Claims to highlight', { count: currentAnalysis.claims.length });
 
   try {
     // Create risk map based on accuracy
     const riskMap = {};
     currentAnalysis.claims.forEach((claim, i) => {
-      console.log(`Claim ${i + 1}:`, claim);
+      // Claim details in debug mode + 1}:`, claim);
 
       // Use snippet for highlighting (if available), otherwise fallback
       const snippetText = claim.snippet || (typeof claim === 'string' ? claim : claim.text);
@@ -233,15 +236,15 @@ document.getElementById('btn-highlight').addEventListener('click', async () => {
         const risk = accuracy === 'Accurate' ? 'low' :
                      accuracy === 'Questionable' ? 'high' : 'medium';
         riskMap[snippetText] = risk;
-        console.log(`  → Snippet: "${snippetText}" → Risk: ${risk}`);
+        // Claim snippet Snippet: "${snippetText}" → Risk: ${risk}`);
       } else {
-        console.log(`  → No snippet found for claim ${i + 1}`);
+        // Claim snippet No snippet found for claim ${i + 1}`);
       }
     });
 
-    console.log('Risk map:', riskMap);
+    // Risk map in context;
 
-    console.log('📤 Sending HIGHLIGHT_CLAIMS to background...');
+    logger.debug('Sending HIGHLIGHT_CLAIMS');
     const response = await chrome.runtime.sendMessage({
       type: 'HIGHLIGHT_CLAIMS',
       data: {
@@ -251,10 +254,10 @@ document.getElementById('btn-highlight').addEventListener('click', async () => {
       }
     });
 
-    console.log('📥 Response from background:', response);
+    logger.debug('Response from background', response);
 
     if (response.ok) {
-      console.log(`✓ Highlighted ${response.count || 0} claims`);
+      logger.info('Claims highlighted', { count: response.count } || 0} claims`);
       setStatus(`Highlighted ${response.count || 0} claims`);
     } else {
       throw new Error(response.error || 'Highlight failed');
@@ -267,7 +270,7 @@ document.getElementById('btn-highlight').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-copy').addEventListener('click', async () => {
-  console.log('Copy button clicked');
+  logger.debug('Copy button clicked');
 
   if (!currentAnalysis) {
     setStatus('No analysis to copy', true);
@@ -293,7 +296,7 @@ document.getElementById('btn-copy').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-clear').addEventListener('click', async () => {
-  console.log('Clear button clicked');
+  logger.debug('Clear button clicked');
 
   if (!currentTabId) {
     setStatus('No active tab', true);

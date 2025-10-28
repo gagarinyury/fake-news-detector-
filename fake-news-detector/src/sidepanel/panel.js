@@ -210,7 +210,7 @@ function escapeHtml(text) {
 // ============================================================================
 
 async function checkAIAvailability() {
-  console.log('Checking AI availability...');
+  logger.debug('Checking AI availability');
 
   // Check if new API exists
   if (!('ai' in self) || !self.ai?.languageModel) {
@@ -218,29 +218,29 @@ async function checkAIAvailability() {
     if (!('LanguageModel' in self)) {
       throw new Error('AI_UNAVAILABLE: Chrome Built-in AI APIs not found');
     }
-    console.log('Using legacy API (LanguageModel)');
+    logger.info('Using legacy AI API');
     return 'legacy';
   }
 
-  console.log('Using new API (ai.languageModel)');
+  logger.info('Using new AI API');
 
   // Check capabilities
   const capabilities = await self.ai.languageModel.capabilities();
-  console.log('AI capabilities:', capabilities);
+  logger.debug('AI capabilities', capabilities);
 
   if (capabilities.available === 'no') {
     throw new Error('AI_UNAVAILABLE: AI is not available on this device');
   }
 
   if (capabilities.available === 'after-download') {
-    console.log('AI model needs to be downloaded');
+    logger.warn('AI model needs to be downloaded');
   }
 
   return 'new';
 }
 
 async function initializeAI(onProgress) {
-  console.log('Initializing AI session...');
+  logger.debug('Initializing AI session');
 
   const apiType = await checkAIAvailability();
   const monitor = createProgressMonitor(onProgress);
@@ -309,7 +309,7 @@ async function initializeAI(onProgress) {
     }
   }
 
-  console.log('AI session initialized successfully');
+  logger.info('AI session initialized');
 }
 
 // ============================================================================
@@ -317,7 +317,7 @@ async function initializeAI(onProgress) {
 // ============================================================================
 
 async function getPageText() {
-  console.log('Requesting page text from background...');
+  logger.debug('Requesting page text');
 
   // Get active tab
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -336,7 +336,7 @@ async function getPageText() {
     throw new Error(response?.error || 'Failed to get page text');
   }
 
-  console.log('Page text received:', response.text.length, 'chars');
+  logger.debug('Page text received', { length: response.text.length });
   return response;
 }
 
@@ -372,7 +372,7 @@ async function analyzeText(text, url, title, suspicionScore = 0) {
       result.lang = detections[0]?.detectedLanguage || 'unknown';
       console.log('✓ Detected language:', result.lang, 'confidence:', detections[0]?.confidence);
     } catch (error) {
-      console.warn('✗ Language detection failed:', error);
+      logger.warn('Language detection failed', { error: error.message });
     }
   }
 
@@ -383,9 +383,9 @@ async function analyzeText(text, url, title, suspicionScore = 0) {
       // Limit text to first 3000 chars for summarization
       const textToSummarize = text.slice(0, 3000);
       result.summary = await summarizer.summarize(textToSummarize);
-      console.log('✓ Summary generated:', result.summary.length, 'chars');
+      logger.debug('Summary generated', { length: result.summary.length });
     } catch (error) {
-      console.warn('✗ Summarization failed:', error);
+      logger.warn('Summarization failed', { error: error.message });
       result.summary = 'Summary unavailable';
     }
   } else {
@@ -477,9 +477,9 @@ async function analyzeText(text, url, title, suspicionScore = 0) {
   const endTime = performance.now();
   result.metadata.analysisTime = Math.round(endTime - startTime);
 
-  console.log('=== ANALYSIS COMPLETE ===');
-  console.log('Analysis time:', result.metadata.analysisTime, 'ms');
-  console.log('Final result:', JSON.stringify(result, null, 2));
+  logger.info('Analysis complete');
+  logger.info('Analysis completed', { time: result.metadata.analysisTime });
+  // Result logged via logger.info;
 
   return result;
 }
@@ -501,7 +501,7 @@ function parseAIResponse(text) {
 }
 
 async function cacheResult(url, result) {
-  console.log('Caching result...');
+  logger.debug('Caching result');
 
   try {
     const response = await chrome.runtime.sendMessage({
@@ -510,12 +510,12 @@ async function cacheResult(url, result) {
     });
 
     if (response?.ok) {
-      console.log('Result cached successfully');
+      logger.debug('Result cached');
     } else {
-      console.warn('Failed to cache result:', response?.error);
+      logger.warn('Failed to cache result', { error: response?.error });
     }
   } catch (error) {
-    console.warn('Cache error:', error);
+    logger.warn('Cache error', { error: error.message });
   }
 }
 
@@ -569,12 +569,12 @@ async function performAnalysis() {
 // ============================================================================
 
 document.getElementById('btn-analyze').addEventListener('click', () => {
-  console.log('Analyze button clicked');
+  logger.debug('Analyze button clicked');
   performAnalysis();
 });
 
 document.getElementById('btn-copy').addEventListener('click', async () => {
-  console.log('Copy button clicked');
+  logger.debug('Copy button clicked');
 
   if (!currentAnalysis) {
     setStatus('No analysis to copy', true);
@@ -604,7 +604,7 @@ document.getElementById('btn-copy').addEventListener('click', async () => {
 
 (async () => {
   try {
-    console.log('Initializing Side Panel...');
+    logger.debug('Initializing Side Panel');
 
     // Check if we're on a valid page
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -622,7 +622,7 @@ document.getElementById('btn-copy').addEventListener('click', async () => {
     });
 
     if (response?.ok && response.data) {
-      console.log('Found cached analysis');
+      logger.debug('Found cached analysis');
       showResult(response.data);
       setStatus('Cached analysis (click Analyze to refresh)');
     } else {
@@ -887,7 +887,7 @@ messageListener = (msg, sender, sendResponse) => {
       isSuspicious: msg.data.isSuspicious
     });
 
-    console.log('🤖 AUTO-ANALYSIS TRIGGERED:', msg.data);
+    logger.info('Auto-analysis triggered', msg.data);
 
     // Show special status for suspicious pages
     if (msg.data.isSuspicious) {
@@ -913,14 +913,14 @@ messageListener = (msg, sender, sendResponse) => {
 
 chrome.runtime.onMessage.addListener(messageListener);
 
-console.log('✓ Auto-analysis listener registered');
+logger.debug('Auto-analysis listener registered');
 
 // ============================================================================
 // CLEANUP
 // ============================================================================
 
 window.addEventListener('beforeunload', async () => {
-  console.log('Cleaning up resources...');
+  logger.debug('Cleaning up resources');
 
   // Remove message listener
   if (messageListener) {

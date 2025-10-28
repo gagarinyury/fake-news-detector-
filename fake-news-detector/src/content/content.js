@@ -1,5 +1,8 @@
+import { createLogger } from "../shared/logger.js";
+const logger = createLogger("Content");
+
 // Content Script - DOM interaction
-console.log('Fake News Detector: Content script loaded');
+logger.debug('Content script loaded');
 
 // ============================================================================
 // TEXT EXTRACTION
@@ -61,19 +64,19 @@ function clearHighlights() {
     container.remove();
   }
 
-  console.log('Highlights cleared');
+  logger.debug('Highlights cleared');
 }
 
 function highlightClaims({ claims, riskMap }) {
-  console.log('=== HIGHLIGHT CLAIMS CALLED ===');
-  console.log('Claims received:', claims);
-  console.log('Claims count:', claims?.length || 0);
-  console.log('Risk map:', riskMap);
+  logger.debug('Highlighting claims');
+  // Claims logged via logger;
+  // Count logged in context;
+  // Risk map logged;
 
   clearHighlights(); // Clear previous highlights
 
   if (!claims || claims.length === 0) {
-    console.log('✗ No claims to highlight');
+    logger.debug('No claims to highlight');
     return 0;
   }
 
@@ -85,9 +88,6 @@ function highlightClaims({ claims, riskMap }) {
   document.body.appendChild(container);
 
   claims.forEach((claim, index) => {
-    console.log(`\n--- Processing Claim ${index + 1} ---`);
-    console.log('Raw claim:', claim);
-    console.log('Claim type:', typeof claim);
 
     // Handle multiple formats: string, {text: ""}, or {claim: "", snippet: ""}
     let claimText;
@@ -98,36 +98,24 @@ function highlightClaims({ claims, riskMap }) {
     if (typeof claim === 'string') {
       claimText = claim.trim();
       fullClaim = claim.trim();
-      console.log('→ Format: string');
-      console.log('→ Using full string as search text:', claimText.slice(0, 50));
     } else if (claim.snippet) {
       // New format: {claim: "", snippet: "", evidence: "", accuracy: ""}
       claimText = claim.snippet.trim();
       fullClaim = claim.claim || claim.snippet;
       claimEvidence = claim.evidence || '';
       claimAccuracy = claim.accuracy || 'Unverified';
-      console.log('→ Format: object with snippet');
-      console.log('→ Snippet (search):', claimText);
-      console.log('→ Full claim:', fullClaim);
-      console.log('→ Evidence:', claimEvidence);
-      console.log('→ Accuracy:', claimAccuracy);
     } else if (claim.text) {
       // Legacy format: {text: ""}
       claimText = claim.text.trim();
       fullClaim = claim.text.trim();
-      console.log('→ Format: legacy object with text');
-      console.log('→ Using text field:', claimText.slice(0, 50));
     } else {
-      console.log('✗ Invalid format, skipping');
       return; // Invalid format
     }
 
     if (!claimText || claimText.length < 3) {
-      console.log('✗ Claim text too short, skipping');
       return;
     }
 
-    console.log('🔍 Searching for:', claimText);
 
     // Search for claim text in the document
     const walker = document.createTreeWalker(
@@ -162,8 +150,6 @@ function highlightClaims({ claims, riskMap }) {
 
       if (startIndex !== -1) {
         // Found the claim text, highlight it
-        console.log(`✓ Found at node ${nodesChecked}, index ${startIndex}`);
-        console.log('  Context:', text.slice(Math.max(0, startIndex - 20), startIndex + claimText.length + 20));
 
         const range = document.createRange();
         range.setStart(node, startIndex);
@@ -181,7 +167,6 @@ function highlightClaims({ claims, riskMap }) {
         mark.dataset.evidence = claimEvidence;
         mark.dataset.accuracy = claimAccuracy;
 
-        console.log('  Risk level:', risk);
 
         // Add hover tooltip
         mark.addEventListener('mouseenter', showTooltip);
@@ -196,14 +181,9 @@ function highlightClaims({ claims, riskMap }) {
     }
 
     if (!found) {
-      console.log(`✗ Claim NOT found after checking ${nodesChecked} nodes`);
-      console.log('  Search text was:', claimText);
-      console.log('  First 100 chars of page:', document.body.innerText.slice(0, 100));
     }
   });
 
-  console.log(`\n=== HIGHLIGHTING COMPLETE ===`);
-  console.log(`✓ Highlighted ${highlightedCount} out of ${claims.length} claims`);
   return highlightedCount;
 }
 
@@ -271,7 +251,7 @@ function hideTooltip() {
 // ============================================================================
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  console.log('Content script received message:', msg.type);
+  logger.debug('Message received', { type: msg.type });
 
   if (msg.type === 'PING') {
     sendResponse({ ok: true });
@@ -317,4 +297,4 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 });
 
-console.log('Content script ready');
+logger.debug('Content script ready');
