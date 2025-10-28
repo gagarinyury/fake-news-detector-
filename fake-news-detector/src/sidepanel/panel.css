@@ -463,6 +463,108 @@ header h1 {
 }
 
 /* ============================================================================
+   PROMPT EDITOR SECTION
+   ============================================================================ */
+
+.prompt-editor-section {
+  margin-top: 24px;
+  border-top: 1px solid #e8eaed;
+  padding-top: 16px;
+}
+
+.prompt-editor-summary {
+  font-size: 14px;
+  font-weight: 500;
+  color: #202124;
+  cursor: pointer;
+  padding: 8px 12px;
+  background: #fff3e0;
+  border-radius: 4px;
+  border: 1px solid #ffa726;
+  margin-bottom: 12px;
+  user-select: none;
+}
+
+.prompt-editor-summary:hover {
+  background: #ffe0b2;
+}
+
+.prompt-editor-content {
+  padding: 12px;
+  background: #fff;
+}
+
+.prompt-hint {
+  background: #e3f2fd;
+  border-left: 3px solid #1976d2;
+  padding: 12px;
+  margin-bottom: 16px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.prompt-hint code {
+  background: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #d32f2f;
+}
+
+.prompt-group {
+  margin-bottom: 20px;
+}
+
+.prompt-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #202124;
+  margin-bottom: 8px;
+}
+
+.prompt-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+  background: #f8f9fa;
+  transition: all 0.2s ease;
+}
+
+.prompt-textarea:focus {
+  outline: none;
+  border-color: #1a73e8;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+.prompt-help {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #5f6368;
+}
+
+.prompt-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.prompts-status {
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  min-height: 18px;
+}
+
+/* ============================================================================
    SETTINGS SECTION
    ============================================================================ */
 
@@ -617,4 +719,44 @@ header h1 {
   color: #0f9d58;
   font-weight: 500;
   min-height: 18px;
+}
+
+/* ============================================================================
+   METADATA / METRICS SECTION
+   ============================================================================ */
+
+.metadata-section {
+  background: #f8f9fa;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+}
+
+.metadata-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e8eaed;
+}
+
+.metric:last-child {
+  border-bottom: none;
+}
+
+.metric-label {
+  font-size: 12px;
+  color: #5f6368;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 13px;
+  color: #202124;
+  font-weight: 600;
 }

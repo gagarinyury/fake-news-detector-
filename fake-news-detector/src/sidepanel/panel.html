@@ -65,6 +65,25 @@
         <div id="lang" class="lang">--</div>
       </div>
 
+      <!-- Analysis Metadata -->
+      <div class="result-section metadata-section">
+        <h3>📊 Analysis Metrics</h3>
+        <div class="metadata-grid">
+          <div class="metric">
+            <span class="metric-label">⏱️ Analysis Time:</span>
+            <span id="metric-time" class="metric-value">--</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">🤖 Model:</span>
+            <span id="metric-model" class="metric-value">--</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">🔍 Suspicion Score:</span>
+            <span id="metric-suspicion" class="metric-value">--</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Actions -->
       <div class="actions">
         <button id="btn-copy" class="btn btn-secondary">Copy Report (JSON)</button>
@@ -77,6 +96,51 @@
       <h3>Error</h3>
       <p id="error-message"></p>
       <p id="error-hint" class="error-hint"></p>
+    </div>
+
+    <!-- Prompt Editor Section -->
+    <div class="prompt-editor-section">
+      <details>
+        <summary class="prompt-editor-summary">
+          ✏️ Custom AI Prompts (Advanced)
+        </summary>
+
+        <div class="prompt-editor-content">
+          <p class="prompt-hint">
+            <strong>⚡ Pro Feature:</strong> Customize AI behavior by editing prompts.
+            Use variables: <code>{{title}}</code>, <code>{{url}}</code>, <code>{{text}}</code>, <code>{{suspicionScore}}</code>
+          </p>
+
+          <!-- System Prompt -->
+          <div class="prompt-group">
+            <label class="prompt-label">System Prompt:</label>
+            <textarea
+              id="system-prompt"
+              class="prompt-textarea"
+              rows="8"
+              placeholder="Enter system prompt..."></textarea>
+            <small class="prompt-help">Defines AI role and output format</small>
+          </div>
+
+          <!-- User Prompt Template -->
+          <div class="prompt-group">
+            <label class="prompt-label">User Prompt Template:</label>
+            <textarea
+              id="user-prompt-template"
+              class="prompt-textarea"
+              rows="10"
+              placeholder="Enter user prompt template..."></textarea>
+            <small class="prompt-help">Template for each analysis request (supports {{variables}})</small>
+          </div>
+
+          <!-- Actions -->
+          <div class="prompt-actions">
+            <button id="btn-save-prompts" class="btn btn-primary">Save Custom Prompts</button>
+            <button id="btn-reset-prompts" class="btn btn-secondary">Reset to Defaults</button>
+          </div>
+          <p id="prompts-status" class="prompts-status"></p>
+        </div>
+      </details>
     </div>
 
     <!-- Settings Section -->

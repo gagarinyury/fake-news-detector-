@@ -228,7 +228,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       }
 
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-      // 🔵 LEVEL 3: AI ANALYSIS (Smart Auto-Trigger)
+      // 🔵 LEVEL 3: AI ANALYSIS (Context-Aware Smart Trigger)
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
       // Check if auto-analysis is enabled
@@ -238,7 +238,34 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         return;
       }
 
-      // Smart mode: only analyze news-like domains
+      // Calculate suspicion score for context-aware analysis
+      const suspicionScore = getSuspicionScore(tab.url, domain, tab.title);
+      console.log(`🔍 Suspicion score for ${domain}: ${suspicionScore}/100`);
+
+      // 🚨 HIGH PRIORITY: Auto-analyze suspicious pages immediately
+      if (suspicionScore >= 50) {
+        console.log(`⚠️  SUSPICIOUS PAGE DETECTED! Score: ${suspicionScore}`);
+        updateBadge(tabId, '⚠️', BADGE_MODES.INSTANT, { domain });
+        chrome.action.setTitle({
+          tabId,
+          title: `⚠️ Suspicious content detected (${suspicionScore}/100) - analyzing...`
+        });
+
+        // Trigger immediate analysis (reduced delay for suspicious pages)
+        const suspiciousDelay = Math.min(1000, settings.analysisDelay);
+        const timer = setTimeout(async () => {
+          const currentTab = await chrome.tabs.get(tabId).catch(() => null);
+          if (currentTab && currentTab.url === tab.url) {
+            console.log(`🤖 [PRIORITY] Analyzing suspicious page: ${tab.url}`);
+            await triggerBackgroundAnalysis(tabId, tab.url, tab.title, domain, suspicionScore);
+          }
+        }, suspiciousDelay);
+
+        pendingAnalysis.set(tabId, timer);
+        return;
+      }
+
+      // Smart mode: only analyze news-like domains (low suspicion)
       if (settings.autoAnalysis === AUTO_ANALYSIS_MODES.SMART) {
         if (!isNewsLikeDomain(domain)) {
           updateBadge(tabId, '?', BADGE_MODES.INSTANT, { domain });
@@ -277,8 +304,9 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
 /**
  * Trigger AI analysis in background via Side Panel
+ * @param {number} suspicionScore - Optional suspicion score (0-100)
  */
-async function triggerBackgroundAnalysis(tabId, url, title, domain) {
+async function triggerBackgroundAnalysis(tabId, url, title, domain, suspicionScore = 0) {
   try {
     // Show "analyzing" badge
     updateBadge(tabId, '...', BADGE_MODES.AI_ANALYZING, { domain });
@@ -286,16 +314,26 @@ async function triggerBackgroundAnalysis(tabId, url, title, domain) {
     // Open Side Panel silently (user can switch to it if they want)
     await chrome.sidePanel.open({ tabId });
 
-    // Send message to Side Panel to start analysis
+    // Send message to Side Panel to start analysis with context
     chrome.runtime.sendMessage({
       type: 'AUTO_ANALYZE_REQUEST',
-      data: { tabId, url, title }
+      data: {
+        tabId,
+        url,
+        title,
+        suspicionScore,
+        isSuspicious: suspicionScore >= 50
+      }
     }).catch(error => {
       // Side Panel might not be ready yet, that's OK
       console.warn('Side Panel not ready for auto-analysis:', error.message);
     });
 
-    console.log(`✓ Auto-analysis triggered for tab ${tabId}`);
+    if (suspicionScore >= 50) {
+      console.log(`✓ [PRIORITY] Suspicious page analysis triggered (score: ${suspicionScore})`);
+    } else {
+      console.log(`✓ Auto-analysis triggered for tab ${tabId}`);
+    }
 
   } catch (error) {
     console.error('Background analysis trigger failed:', error);

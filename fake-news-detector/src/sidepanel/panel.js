@@ -6,6 +6,7 @@
 import { classifyError, logError, createProgressMonitor } from '../shared/errorHandler.js';
 import { createLogger, getLogs, clearLogs, downloadLogs } from '../shared/logger.js';
 import { getSettings, updateSettings, AUTO_ANALYSIS_MODES } from '../shared/settings.js';
+import { getPrompts, savePrompts, resetPrompts, buildAnalysisPrompt, RESPONSE_SCHEMA, DEFAULT_SYSTEM_PROMPT, DEFAULT_USER_PROMPT_TEMPLATE } from '../shared/prompts.js';
 
 const logger = createLogger('SidePanel');
 
@@ -169,6 +170,28 @@ function showResult(data) {
 
   // Language
   document.getElementById('lang').textContent = data.lang || 'unknown';
+
+  // Metadata / Metrics
+  if (data.metadata) {
+    document.getElementById('metric-time').textContent =
+      data.metadata.analysisTime ? `${(data.metadata.analysisTime / 1000).toFixed(2)}s` : 'N/A';
+
+    document.getElementById('metric-model').textContent =
+      data.metadata.modelUsed || 'Gemini Nano';
+
+    const suspicionEl = document.getElementById('metric-suspicion');
+    const suspicion = data.metadata.suspicionScore || 0;
+    suspicionEl.textContent = suspicion > 0 ? `${suspicion}/100` : 'N/A';
+
+    // Color code suspicion
+    if (suspicion >= 50) {
+      suspicionEl.style.color = '#db4437';
+      suspicionEl.style.fontWeight = '700';
+    } else {
+      suspicionEl.style.color = '#202124';
+      suspicionEl.style.fontWeight = '600';
+    }
+  }
 }
 
 function hideResult() {
@@ -222,23 +245,19 @@ async function initializeAI(onProgress) {
   const apiType = await checkAIAvailability();
   const monitor = createProgressMonitor(onProgress);
 
+  // Load custom prompts (or defaults)
+  const prompts = await getPrompts();
+  logger.info('Loaded prompts', { hasCustom: prompts !== null });
+
   if (apiType === 'new') {
-    // New API
+    // New API with systemPrompt
     aiSession = await self.ai.languageModel.create({
-      systemPrompt: `You are an expert fact-checker and journalist analyzing news articles for credibility.
-
-Your role is to:
-1. Assign a credibility score (0-100)
-2. Provide a brief verdict
-3. Identify red flags
-4. Extract key factual claims with snippets for highlighting
-
-CRITICAL: For highlighting to work, each claim MUST have a "snippet" field containing a SHORT 2-4 word phrase that appears EXACTLY in the article text.
-
-Output format: Valid JSON only (no markdown, no explanations).`,
+      systemPrompt: prompts.systemPrompt,
       outputLanguage: 'en',
       monitor
     });
+
+    logger.info('AI session created with new API (systemPrompt)');
 
     // Initialize summarizer
     const sumCaps = await self.ai.summarizer.capabilities();
@@ -260,14 +279,16 @@ Output format: Valid JSON only (no markdown, no explanations).`,
     }
 
   } else {
-    // Legacy API
+    // Legacy API with initialPrompts (spec-compliant)
     aiSession = await self.LanguageModel.create({
       initialPrompts: [{
         role: 'system',
-        content: `You are an expert fact-checker. Respond with valid JSON only.`
+        content: prompts.systemPrompt
       }],
       monitor
     });
+
+    logger.info('AI session created with legacy API (initialPrompts)');
 
     if ('Summarizer' in self) {
       const avail = await self.Summarizer.availability();
@@ -319,12 +340,15 @@ async function getPageText() {
   return response;
 }
 
-async function analyzeText(text, url, title) {
+async function analyzeText(text, url, title, suspicionScore = 0) {
   logger.info('Starting AI analysis', {
     textLength: text.length,
     url,
-    title
+    title,
+    suspicionScore
   });
+
+  const startTime = performance.now();
 
   const result = {
     score: 0,
@@ -332,7 +356,12 @@ async function analyzeText(text, url, title) {
     red_flags: [],
     claims: [],
     summary: '',
-    lang: 'unknown'
+    lang: 'unknown',
+    metadata: {
+      analysisTime: 0,
+      suspicionScore,
+      modelUsed: 'Gemini Nano'
+    }
   };
 
   // Step 1: Detect language
@@ -366,72 +395,32 @@ async function analyzeText(text, url, title) {
   // Step 3: Analyze credibility
   updateProgress(60, 'Analyzing credibility...');
 
-  // Define JSON Schema for structured output
-  const responseSchema = {
-    type: "object",
-    properties: {
-      score: {
-        type: "number",
-        minimum: 0,
-        maximum: 100,
-        description: "Credibility score 0-100"
-      },
-      verdict: {
-        type: "string",
-        description: "Brief assessment in 1-2 sentences"
-      },
-      red_flags: {
-        type: "array",
-        items: { type: "string" },
-        description: "Array of suspicious patterns"
-      },
-      claims: {
-        type: "array",
-        items: {
-          type: "object",
-          properties: {
-            claim: { type: "string", description: "Full factual statement (max 20 words)" },
-            snippet: { type: "string", description: "2-4 word phrase from article for highlighting" },
-            evidence: { type: "string", description: "Source name or empty string" },
-            accuracy: {
-              type: "string",
-              enum: ["Accurate", "Questionable", "Unverified"],
-              description: "Assessment of claim accuracy"
-            }
-          },
-          required: ["claim", "snippet", "evidence", "accuracy"]
-        },
-        minItems: 5,
-        maxItems: 10
-      }
-    },
-    required: ["score", "verdict", "red_flags", "claims"]
-  };
-
-  const prompt = `Analyze this article for credibility and extract key claims.
-
-Title: ${title}
-URL: ${url}
-
-Text (first 2000 chars):
-${text.slice(0, 2000)}
-
-IMPORTANT: For each claim, "snippet" must be a SHORT 2-4 word phrase that appears EXACTLY in the article text above. This will be used to highlight the claim on the page.
-
-Example good snippets: "Category 5", "175 mph winds", "seven deaths"
-Example bad snippets: long sentences, paraphrases, text not in article
-
-Provide a credibility score (0-100), verdict, red flags, and 5-10 key claims.`;
+  // Build prompt using template system
+  const prompt = await buildAnalysisPrompt({
+    title,
+    url,
+    text,
+    suspicionScore
+  });
 
   logger.debug('Sending prompt to AI', {
-    promptPreview: prompt.slice(0, 300)
+    promptPreview: prompt.slice(0, 300),
+    suspicionScore
   });
 
   try {
-    // Use structured output with JSON Schema
-    const rawResponse = await aiSession.prompt(prompt, {
-      responseConstraint: responseSchema
-    });
+    // Try structured output with responseConstraint (Chrome 128+)
+    let rawResponse;
+    try {
+      rawResponse = await aiSession.prompt(prompt, {
+        responseConstraint: RESPONSE_SCHEMA
+      });
+      logger.info('Used responseConstraint for structured output');
+    } catch (constraintError) {
+      // Fallback: Plain prompt without constraint
+      logger.warn('responseConstraint not supported, using plain prompt');
+      rawResponse = await aiSession.prompt(prompt);
+    }
 
     logger.info('AI response received', {
       responseLength: rawResponse.length,
@@ -483,7 +472,13 @@ Provide a credibility score (0-100), verdict, red flags, and 5-10 key claims.`;
   }
 
   updateProgress(100, 'Complete!');
+
+  // Calculate analysis time
+  const endTime = performance.now();
+  result.metadata.analysisTime = Math.round(endTime - startTime);
+
   console.log('=== ANALYSIS COMPLETE ===');
+  console.log('Analysis time:', result.metadata.analysisTime, 'ms');
   console.log('Final result:', JSON.stringify(result, null, 2));
 
   return result;
@@ -778,6 +773,96 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
 
 // Load settings on panel open
 loadSettings();
+
+// ============================================================================
+// PROMPT EDITOR UI
+// ============================================================================
+
+async function loadPromptEditor() {
+  try {
+    const prompts = await getPrompts();
+    logger.info('Prompts loaded for editor');
+
+    document.getElementById('system-prompt').value = prompts.systemPrompt;
+    document.getElementById('user-prompt-template').value = prompts.userPromptTemplate;
+
+  } catch (error) {
+    logger.error('Failed to load prompts', { error: error.message });
+  }
+}
+
+// Prompt editor event listeners
+document.getElementById('btn-save-prompts').addEventListener('click', async () => {
+  try {
+    const systemPrompt = document.getElementById('system-prompt').value.trim();
+    const userPromptTemplate = document.getElementById('user-prompt-template').value.trim();
+    const statusEl = document.getElementById('prompts-status');
+
+    if (!systemPrompt || !userPromptTemplate) {
+      statusEl.textContent = '✗ Both prompts are required';
+      statusEl.style.color = '#db4437';
+      return;
+    }
+
+    await savePrompts(systemPrompt, userPromptTemplate);
+    logger.info('Custom prompts saved');
+
+    // Show success message
+    statusEl.textContent = '✓ Custom prompts saved! Restart analysis to apply changes.';
+    statusEl.style.color = '#0f9d58';
+
+    // Clear message after 5 seconds
+    setTimeout(() => {
+      statusEl.textContent = '';
+    }, 5000);
+
+    // Note: AI session needs to be reinitialized to use new prompts
+    // For now, we just save them - they'll be used on next analysis
+
+  } catch (error) {
+    logger.error('Failed to save prompts', { error: error.message });
+
+    const statusEl = document.getElementById('prompts-status');
+    statusEl.textContent = '✗ Failed to save prompts: ' + error.message;
+    statusEl.style.color = '#db4437';
+  }
+});
+
+document.getElementById('btn-reset-prompts').addEventListener('click', async () => {
+  try {
+    const statusEl = document.getElementById('prompts-status');
+
+    if (!confirm('Reset prompts to defaults? This will discard your custom prompts.')) {
+      return;
+    }
+
+    await resetPrompts();
+    logger.info('Prompts reset to defaults');
+
+    // Reload default prompts in UI
+    document.getElementById('system-prompt').value = DEFAULT_SYSTEM_PROMPT;
+    document.getElementById('user-prompt-template').value = DEFAULT_USER_PROMPT_TEMPLATE;
+
+    // Show success message
+    statusEl.textContent = '✓ Prompts reset to defaults';
+    statusEl.style.color = '#0f9d58';
+
+    // Clear message after 3 seconds
+    setTimeout(() => {
+      statusEl.textContent = '';
+    }, 3000);
+
+  } catch (error) {
+    logger.error('Failed to reset prompts', { error: error.message });
+
+    const statusEl = document.getElementById('prompts-status');
+    statusEl.textContent = '✗ Failed to reset prompts';
+    statusEl.style.color = '#db4437';
+  }
+});
+
+// Load prompt editor on panel open
+loadPromptEditor();
 
 // ============================================================================
 // CLEANUP
