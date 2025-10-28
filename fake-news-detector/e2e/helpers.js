@@ -23,18 +23,23 @@ export async function loadExtension(context) {
   // Extension is already loaded via launchOptions in fixtures
   // This function gets the extension ID
 
-  // Wait for service worker to be ready
-  await context.waitForEvent('serviceworker');
+  let serviceWorker;
 
-  // Get all service workers
-  const serviceWorkers = context.serviceWorkers();
-
-  if (serviceWorkers.length === 0) {
-    throw new Error('Extension service worker not found');
+  // Try to wait for service worker, with timeout handling
+  try {
+    serviceWorker = await context.waitForEvent('serviceworker', { timeout: 5000 });
+  } catch (e) {
+    // Service worker might already be registered
+    const existingWorkers = context.serviceWorkers();
+    if (existingWorkers.length > 0) {
+      serviceWorker = existingWorkers[0];
+    } else {
+      throw new Error('Extension service worker not found: ' + e.message);
+    }
   }
 
   // Extract extension ID from service worker URL
-  const swUrl = serviceWorkers[0].url();
+  const swUrl = serviceWorker.url();
   const match = swUrl.match(/chrome-extension:\/\/([a-z]+)\//);
 
   if (!match) {

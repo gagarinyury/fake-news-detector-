@@ -11,7 +11,10 @@ export const test = base.extend({
   context: async ({ }, use) => {
     const extensionPath = getExtensionPath();
 
-    const context = await chromium.launchPersistentContext('', {
+    // Use a temporary directory for user data
+    const userDataDir = `/tmp/playwright-chrome-${Date.now()}`;
+
+    const context = await chromium.launchPersistentContext(userDataDir, {
       headless: false,
       args: [
         `--disable-extensions-except=${extensionPath}`,
@@ -20,6 +23,9 @@ export const test = base.extend({
         '--disable-setuid-sandbox',
       ],
     });
+
+    // Wait a bit for extension to load
+    await context.pages()[0].waitForTimeout(1000);
 
     await use(context);
     await context.close();
