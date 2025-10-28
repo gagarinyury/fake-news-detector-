@@ -1,0 +1,185 @@
+# 14_OFFSCREEN_SPEC — Offscreen Document для AI вызовов
+
+**Цель:** изолировать AI API (LanguageModel, Summarizer, LanguageDetector) в offscreen context, чтобы они работали независимо от popup.
+
+## Требования
+- **Offscreen Document** создаётся background.js по требованию (когда нужен анализ).
+- После завершения анализа offscreen может быть закрыт (экономия RAM) или оставлен открытым (для повторных быстрых вызовов).
+- **API доступны только в offscreen**, НЕ в popup, НЕ в service worker.
+
+## Структура
+```
+src/offscreen/
+├─ offscreen.html   # Минимальный HTML, подключает offscreen.js
+└─ offscreen.js     # AI логика: LanguageModel, Summarizer, LanguageDetector
+```
+
+## offscreen.html
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Offscreen AI</title>
+</head>
+<body>
+  <script src="offscreen.js"></script>
+</body>
+</html>
+```
+
+## offscreen.js — основная логика
+
+### 1. Проверка доступности API
+```javascript
+async function checkAI() {
+  const checks = {
+    languageModel: 'LanguageModel' in self,
+    summarizer: 'Summarizer' in self,
+    languageDetector: 'LanguageDetector' in self
+  };
+
+  if (!checks.languageModel || !checks.summarizer || !checks.languageDetector) {
+    throw new Error('AI APIs not available in offscreen');
+  }
+
+  return checks;
+}
+```
+
+### 2. Создание сессий (lazy init)
+```javascript
+let languageModelSession = null;
+
+async function getLanguageModelSession() {
+  if (!languageModelSession) {
+    const availability = await LanguageModel.availability();
+    if (availability === 'unavailable') {
+      throw new Error('LanguageModel unavailable');
+    }
+
+    languageModelSession = await LanguageModel.create({
+      initialPrompts: [{
+        role: 'system',
+        content: '...' // см. 06_PROMPT_SCHEMA_SPEC
+      }],
+      monitor(m) {
+        m.addEventListener('downloadprogress', (e) => {
+          console.log(`Model download: ${Math.round(e.loaded * 100)}%`);
+        });
+      }
+    });
+  }
+
+  return languageModelSession;
+}
+```
+
+### 3. Обработка сообщений от background
+```javascript
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === 'ANALYZE_TEXT') {
+    analyzeText(msg.data)
+      .then(result => sendResponse({ ok: true, data: result }))
+      .catch(error => sendResponse({ ok: false, error: error.message }));
+    return true; // async response
+  }
+});
+
+async function analyzeText({ text, url, title }) {
+  // 1. Language detection
+  const detectorAvail = await LanguageDetector.availability();
+  let lang = 'unknown';
+  if (detectorAvail !== 'unavailable') {
+    const detector = await LanguageDetector.create();
+    const results = await detector.detect(text.slice(0, 6000));
+    lang = results[0]?.detectedLanguage || 'unknown';
+  }
+
+  // 2. Summarization
+  const summarizerAvail = await Summarizer.availability();
+  let summary = null;
+  if (summarizerAvail !== 'unavailable') {
+    const summarizer = await Summarizer.create({
+      type: 'key-points',
+      format: 'markdown',
+      length: 'short'
+    });
+    summary = await summarizer.summarize(text.slice(0, 60000));
+  }
+
+  // 3. Credibility analysis
+  const session = await getLanguageModelSession();
+  const trimmed = text.slice(0, 40000);
+  const prompt = `Analyze this article...
+Page: ${title}
+URL: ${url}
+Language: ${lang}
+
+${trimmed}`;
+
+  const rawResponse = await session.prompt(prompt);
+  const parsed = parseJSON(rawResponse); // см. shared/json.js
+
+  return {
+    score: parsed.credibility_score,
+    verdict: parsed.verdict,
+    red_flags: parsed.red_flags,
+    claims: parsed.claims,
+    summary,
+    lang
+  };
+}
+```
+
+## Создание offscreen из background
+```javascript
+// background.js
+async function ensureOffscreen() {
+  const existing = await chrome.offscreen.hasDocument();
+  if (!existing) {
+    await chrome.offscreen.createDocument({
+      url: 'src/offscreen/offscreen.html',
+      reasons: ['BLOBS'], // для работы с AI моделями (binary data)
+      justification: 'AI analysis using Chrome Built-in APIs (LanguageModel, Summarizer, LanguageDetector)'
+    });
+  }
+}
+
+async function analyzePageInOffscreen(text, url, title) {
+  await ensureOffscreen();
+
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(
+      { type: 'ANALYZE_TEXT', data: { text, url, title } },
+      (response) => {
+        if (response.ok) resolve(response.data);
+        else reject(new Error(response.error));
+      }
+    );
+  });
+}
+```
+
+## Keep-alive (опционально)
+Offscreen может быть закрыт Chrome автоматически. Для долгоживущей сессии:
+
+```javascript
+// offscreen.js
+// Ping background каждую минуту
+setInterval(() => {
+  chrome.runtime.sendMessage({ type: 'PING' });
+}, 60000);
+```
+
+## Критерии приёмки
+- Offscreen document создаётся и закрывается корректно.
+- AI API доступны в offscreen context.
+- Сообщения между background ↔ offscreen работают.
+- Модель загружается при первом вызове (прогресс логируется).
+- Повторные вызовы используют закэшированную сессию (быстрее).
+- Keep-alive опционален (для production).
+
+## Acceptance
+- На 5+ страницах offscreen возвращает корректный JSON.
+- При ошибках (unavailable API, quota exceeded) возвращается понятное сообщение.

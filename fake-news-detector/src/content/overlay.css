@@ -1,0 +1,36 @@
+/* Overlay styles for highlights */
+
+.fnd-claim {
+  background-color: rgba(255, 235, 59, 0.3);
+  border-bottom: 2px solid #fbc02d;
+  cursor: help;
+  position: relative;
+}
+
+.fnd-claim.fnd-risk-high {
+  background-color: rgba(244, 67, 54, 0.2);
+  border-bottom-color: #d32f2f;
+}
+
+.fnd-claim.fnd-risk-medium {
+  background-color: rgba(255, 152, 0, 0.2);
+  border-bottom-color: #f57c00;
+}
+
+.fnd-claim.fnd-risk-low {
+  background-color: rgba(76, 175, 80, 0.2);
+  border-bottom-color: #388e3c;
+}
+
+/* Tooltip placeholder */
+.fnd-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  max-width: 250px;
+  z-index: 999999;
+  pointer-events: none;
+}

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fake News Detector - Full Analysis</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Fake News Detector</h1>
+      <p class="subtitle">Full Analysis</p>
+    </header>
+
+    <!-- Progress Section -->
+    <div id="progress-section" style="display: none;">
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <p id="progress-text" class="progress-text">Initializing...</p>
+    </div>
+
+    <!-- Status Section -->
+    <div id="status-section">
+      <p id="status" class="status">Ready to analyze</p>
+    </div>
+
+    <!-- Action Button -->
+    <button id="btn-analyze" class="btn btn-primary">
+      Analyze Current Page
+    </button>
+
+    <!-- Results Section -->
+    <div id="result" class="result" style="display: none;">
+
+      <!-- Score -->
+      <div class="result-section">
+        <h2>Credibility Score</h2>
+        <div id="score" class="score">--</div>
+        <p id="verdict" class="verdict">--</p>
+      </div>
+
+      <!-- Red Flags -->
+      <div class="result-section">
+        <h3>Red Flags</h3>
+        <div id="flags" class="flags">--</div>
+      </div>
+
+      <!-- Key Claims -->
+      <div class="result-section">
+        <h3>Key Claims</h3>
+        <div id="claims" class="claims">--</div>
+      </div>
+
+      <!-- Summary -->
+      <div class="result-section">
+        <h3>Summary</h3>
+        <div id="summary" class="summary">--</div>
+      </div>
+
+      <!-- Language -->
+      <div class="result-section">
+        <h3>Language</h3>
+        <div id="lang" class="lang">--</div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button id="btn-copy" class="btn btn-secondary">Copy Report (JSON)</button>
+      </div>
+
+    </div>
+
+    <!-- Error Section -->
+    <div id="error-section" class="error" style="display: none;">
+      <h3>Error</h3>
+      <p id="error-message"></p>
+      <p id="error-hint" class="error-hint"></p>
+    </div>
+
+    <!-- Debug Logs Section -->
+    <div class="debug-section">
+      <details>
+        <summary class="debug-summary">
+          🔍 Debug Logs
+          <span id="log-count" class="log-count">(0)</span>
+        </summary>
+        <div class="debug-controls">
+          <button id="btn-refresh-logs" class="btn btn-small">Refresh</button>
+          <button id="btn-download-logs" class="btn btn-small">Download</button>
+          <button id="btn-clear-logs" class="btn btn-small btn-danger">Clear All</button>
+        </div>
+        <div id="logs-container" class="logs-container">
+          <p class="logs-empty">No logs yet. Perform an analysis to see logs here.</p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <script type="module" src="panel.js"></script>
+</body>
+</html>

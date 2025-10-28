@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "AI Smoke Test",
+  "version": "0.0.1",
+  "description": "Minimal test for Chrome Built-in AI APIs (LanguageModel, Summarizer, LanguageDetector)",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Test AI APIs"
+  },
+  "permissions": ["activeTab"]
+}
