@@ -2,6 +2,7 @@
 import { knownSites } from '../shared/knownSites.js';
 import { hashURL } from '../shared/hashing.js';
 import { logError, handleGracefully } from '../shared/errorHandler.js';
+import { getSettings, AUTO_ANALYSIS_MODES, isNewsLikeDomain, getSuspicionScore } from '../shared/settings.js';
 
 console.log('Fake News Detector: Background service worker loaded');
 
@@ -58,13 +59,79 @@ async function cacheResult(url, textLength, data) {
 }
 
 // ============================================================================
-// BADGE UPDATES
+// BADGE UPDATES - 3 LEVELS OF INTELLIGENCE
 // ============================================================================
 
-function updateBadge(tabId, score) {
-  const color = score >= 75 ? '#0f9d58' : score >= 40 ? '#f4b400' : '#db4437';
+const BADGE_MODES = {
+  INSTANT: 'instant',      // Offline knownSites (0ms)
+  CACHED: 'cached',        // chrome.storage (10ms)
+  AI_ANALYZING: 'analyzing', // AI analysis in progress
+  AI_COMPLETE: 'ai'        // Full AI analysis complete
+};
+
+/**
+ * Update badge with score and mode
+ * @param {number} tabId - Tab ID
+ * @param {number|string} score - Score (0-100) or '?' or '...'
+ * @param {string} mode - BADGE_MODES value
+ * @param {object} extra - Additional tooltip data
+ */
+function updateBadge(tabId, score, mode = BADGE_MODES.INSTANT, extra = {}) {
+  let color, text;
+
+  if (score === '...') {
+    // Analyzing state
+    color = '#9AA0A6'; // Gray
+    text = '...';
+  } else if (score === '?') {
+    // Unknown state
+    color = '#E8EAED'; // Light gray
+    text = '?';
+  } else {
+    // Numeric score
+    color = score >= 75 ? '#0f9d58' : score >= 40 ? '#f4b400' : '#db4437';
+    text = String(score);
+  }
+
   chrome.action.setBadgeBackgroundColor({ tabId, color });
-  chrome.action.setBadgeText({ tabId, text: String(score) });
+  chrome.action.setBadgeText({ tabId, text });
+
+  // Update tooltip
+  updateBadgeTooltip(tabId, score, mode, extra);
+}
+
+/**
+ * Update badge tooltip with detailed info
+ */
+function updateBadgeTooltip(tabId, score, mode, extra) {
+  let tooltip = 'Fake News Detector';
+
+  if (score === '...') {
+    tooltip = 'Analyzing page credibility...';
+  } else if (score === '?') {
+    tooltip = 'Click to analyze page credibility';
+  } else {
+    const modeLabel = mode === BADGE_MODES.INSTANT ? ' (Known source)' :
+                      mode === BADGE_MODES.CACHED ? ' (Cached)' :
+                      mode === BADGE_MODES.AI_COMPLETE ? ' (AI analyzed)' : '';
+
+    tooltip = `Credibility Score: ${score}/100${modeLabel}`;
+
+    if (extra.domain) {
+      tooltip += `\nDomain: ${extra.domain}`;
+    }
+
+    if (extra.timestamp) {
+      const date = new Date(extra.timestamp);
+      tooltip += `\nAnalyzed: ${date.toLocaleString()}`;
+    }
+
+    if (extra.redFlagsCount !== undefined) {
+      tooltip += `\nRed flags: ${extra.redFlagsCount}`;
+    }
+  }
+
+  chrome.action.setTitle({ tabId, title: tooltip });
 }
 
 // ============================================================================
@@ -123,37 +190,125 @@ async function getPageText(tabId) {
 }
 
 // ============================================================================
-// AUTO-ANALYSIS ON PAGE LOAD
+// SMART AUTO-ANALYSIS ON PAGE LOAD - 3 LEVELS
 // ============================================================================
+
+// Track pending analysis timers
+const pendingAnalysis = new Map();
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url?.startsWith('http')) {
-    console.log('Page loaded:', tab.url);
+    console.log('📄 Page loaded:', tab.url);
 
     try {
       const domain = new URL(tab.url).hostname;
+      const settings = await getSettings();
 
-      // Quick offline score
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // 🟢 LEVEL 1: INSTANT (Known Sites - Offline)
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       const offlineScore = knownSites[domain];
       if (offlineScore) {
-        updateBadge(tabId, offlineScore);
-        console.log('Offline score for', domain, ':', offlineScore);
+        updateBadge(tabId, offlineScore, BADGE_MODES.INSTANT, { domain });
+        console.log(`✓ Level 1 (Instant): ${domain} = ${offlineScore}`);
       }
 
-      // Check cache for badge display
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // 🟡 LEVEL 2: CACHED (Previous Analysis)
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
       const cached = await getCachedResult(tab.url);
       if (cached) {
-        updateBadge(tabId, cached.score);
-        console.log('Using cached result for badge:', tab.url);
+        updateBadge(tabId, cached.score, BADGE_MODES.CACHED, {
+          domain,
+          timestamp: cached.timestamp || Date.now(),
+          redFlagsCount: cached.red_flags?.length || 0
+        });
+        console.log(`✓ Level 2 (Cached): ${cached.score}`);
+        return; // Stop here if we have cache
       }
 
-      // Auto-analysis removed - user must open Side Panel for AI analysis
-      // Badge only shows cached results or offline scores
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      // 🔵 LEVEL 3: AI ANALYSIS (Smart Auto-Trigger)
+      // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+      // Check if auto-analysis is enabled
+      if (settings.autoAnalysis === AUTO_ANALYSIS_MODES.OFF) {
+        updateBadge(tabId, '?', BADGE_MODES.INSTANT, { domain });
+        console.log('⏸️  Auto-analysis disabled by user');
+        return;
+      }
+
+      // Smart mode: only analyze news-like domains
+      if (settings.autoAnalysis === AUTO_ANALYSIS_MODES.SMART) {
+        if (!isNewsLikeDomain(domain)) {
+          updateBadge(tabId, '?', BADGE_MODES.INSTANT, { domain });
+          console.log(`⏸️  Skipping non-news domain: ${domain}`);
+          return;
+        }
+      }
+
+      // Clear any existing pending analysis for this tab
+      if (pendingAnalysis.has(tabId)) {
+        clearTimeout(pendingAnalysis.get(tabId));
+      }
+
+      // Schedule analysis with delay (throttling)
+      console.log(`⏳ Scheduling analysis in ${settings.analysisDelay}ms...`);
+      const timer = setTimeout(async () => {
+        // Verify user is still on the same page
+        const currentTab = await chrome.tabs.get(tabId).catch(() => null);
+        if (!currentTab || currentTab.url !== tab.url) {
+          console.log('⏸️  Tab changed, skipping analysis');
+          return;
+        }
+
+        console.log(`🤖 Triggering Level 3 (AI) analysis for: ${tab.url}`);
+        await triggerBackgroundAnalysis(tabId, tab.url, tab.title, domain);
+      }, settings.analysisDelay);
+
+      pendingAnalysis.set(tabId, timer);
 
     } catch (error) {
-      logError(error, { context: 'auto-analysis', url: tab.url });
+      logError(error, { context: 'smart-auto-analysis', url: tab.url });
       // Don't crash - extension continues in degraded mode
     }
+  }
+});
+
+/**
+ * Trigger AI analysis in background via Side Panel
+ */
+async function triggerBackgroundAnalysis(tabId, url, title, domain) {
+  try {
+    // Show "analyzing" badge
+    updateBadge(tabId, '...', BADGE_MODES.AI_ANALYZING, { domain });
+
+    // Open Side Panel silently (user can switch to it if they want)
+    await chrome.sidePanel.open({ tabId });
+
+    // Send message to Side Panel to start analysis
+    chrome.runtime.sendMessage({
+      type: 'AUTO_ANALYZE_REQUEST',
+      data: { tabId, url, title }
+    }).catch(error => {
+      // Side Panel might not be ready yet, that's OK
+      console.warn('Side Panel not ready for auto-analysis:', error.message);
+    });
+
+    console.log(`✓ Auto-analysis triggered for tab ${tabId}`);
+
+  } catch (error) {
+    console.error('Background analysis trigger failed:', error);
+    // Revert badge to unknown state
+    updateBadge(tabId, '?', BADGE_MODES.INSTANT, { domain });
+  }
+}
+
+// Clean up timers when tabs are closed
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (pendingAnalysis.has(tabId)) {
+    clearTimeout(pendingAnalysis.get(tabId));
+    pendingAnalysis.delete(tabId);
   }
 });
 

@@ -79,6 +79,67 @@
       <p id="error-hint" class="error-hint"></p>
     </div>
 
+    <!-- Settings Section -->
+    <div class="settings-section">
+      <details>
+        <summary class="settings-summary">
+          ⚙️ Auto-Analysis Settings
+        </summary>
+
+        <div class="settings-content">
+          <!-- Auto-Analysis Mode -->
+          <div class="setting-group">
+            <label class="setting-label">Analysis Mode:</label>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="auto-mode" value="off">
+                <span class="radio-label">
+                  <strong>Off</strong> - Manual only
+                  <small>Click to analyze each page</small>
+                </span>
+              </label>
+
+              <label class="radio-option">
+                <input type="radio" name="auto-mode" value="smart" checked>
+                <span class="radio-label">
+                  <strong>Smart</strong> - News sites only (Recommended)
+                  <small>Auto-analyze news/article pages</small>
+                </span>
+              </label>
+
+              <label class="radio-option">
+                <input type="radio" name="auto-mode" value="always">
+                <span class="radio-label">
+                  <strong>Always</strong> - All HTTP(S) pages
+                  <small>Analyze every webpage (high resource usage)</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Analysis Delay -->
+          <div class="setting-group">
+            <label class="setting-label">
+              Analysis Delay: <span id="delay-value" class="delay-value">3s</span>
+            </label>
+            <input
+              type="range"
+              id="delay-slider"
+              class="slider"
+              min="0"
+              max="10000"
+              step="1000"
+              value="3000">
+            <small class="setting-hint">Time to wait before auto-analyzing (prevents analyzing pages you quickly scroll past)</small>
+          </div>
+
+          <!-- Save Button -->
+          <button id="btn-save-settings" class="btn btn-secondary">Save Settings</button>
+          <p id="settings-status" class="settings-status"></p>
+        </div>
+      </details>
+    </div>
+
     <!-- Debug Logs Section -->
     <div class="debug-section">
       <details>

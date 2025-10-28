@@ -5,6 +5,7 @@
 
 import { classifyError, logError, createProgressMonitor } from '../shared/errorHandler.js';
 import { createLogger, getLogs, clearLogs, downloadLogs } from '../shared/logger.js';
+import { getSettings, updateSettings, AUTO_ANALYSIS_MODES } from '../shared/settings.js';
 
 const logger = createLogger('SidePanel');
 
@@ -703,6 +704,80 @@ setInterval(refreshLogs, 3000);
 
 // Initial load
 refreshLogs();
+
+// ============================================================================
+// SETTINGS UI
+// ============================================================================
+
+async function loadSettings() {
+  try {
+    const settings = await getSettings();
+    logger.info('Settings loaded', settings);
+
+    // Update UI with current settings
+    const modeRadios = document.querySelectorAll('input[name="auto-mode"]');
+    modeRadios.forEach(radio => {
+      radio.checked = (radio.value === settings.autoAnalysis);
+    });
+
+    const delaySlider = document.getElementById('delay-slider');
+    delaySlider.value = settings.analysisDelay;
+    updateDelayDisplay(settings.analysisDelay);
+
+  } catch (error) {
+    logger.error('Failed to load settings', { error: error.message });
+  }
+}
+
+function updateDelayDisplay(ms) {
+  const delayValue = document.getElementById('delay-value');
+  if (ms === 0) {
+    delayValue.textContent = 'Instant';
+  } else {
+    delayValue.textContent = `${ms / 1000}s`;
+  }
+}
+
+// Settings event listeners
+document.getElementById('delay-slider').addEventListener('input', (e) => {
+  updateDelayDisplay(parseInt(e.target.value));
+});
+
+document.getElementById('btn-save-settings').addEventListener('click', async () => {
+  try {
+    const modeRadio = document.querySelector('input[name="auto-mode"]:checked');
+    const delaySlider = document.getElementById('delay-slider');
+    const statusEl = document.getElementById('settings-status');
+
+    const newSettings = {
+      autoAnalysis: modeRadio.value,
+      analysisDelay: parseInt(delaySlider.value)
+    };
+
+    await updateSettings(newSettings);
+
+    logger.info('Settings saved', newSettings);
+
+    // Show success message
+    statusEl.textContent = '✓ Settings saved successfully!';
+    statusEl.style.color = '#0f9d58';
+
+    // Clear message after 3 seconds
+    setTimeout(() => {
+      statusEl.textContent = '';
+    }, 3000);
+
+  } catch (error) {
+    logger.error('Failed to save settings', { error: error.message });
+
+    const statusEl = document.getElementById('settings-status');
+    statusEl.textContent = '✗ Failed to save settings';
+    statusEl.style.color = '#db4437';
+  }
+});
+
+// Load settings on panel open
+loadSettings();
 
 // ============================================================================
 // CLEANUP

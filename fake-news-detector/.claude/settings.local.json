@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/yurygagarin/code/google/md-specs/**)",
+      "Read(//Users/yurygagarin/code/google/ai-smoke-test/**)",
+      "Bash(mkdir:*)",
+      "Read(//Users/yurygagarin/code/google/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
