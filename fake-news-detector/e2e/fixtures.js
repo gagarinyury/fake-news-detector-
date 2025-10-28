@@ -2,7 +2,7 @@
  * Playwright fixtures for Chrome Extension testing
  */
 import { test as base, chromium } from '@playwright/test';
-import { getExtensionPath, loadExtension } from './helpers.js';
+import { getExtensionPath, loadExtension, injectStorageMock } from './helpers.js';
 
 /**
  * Extended test with Chrome extension context
@@ -34,6 +34,16 @@ export const test = base.extend({
   extensionId: async ({ context }, use) => {
     const extensionId = await loadExtension(context);
     await use(extensionId);
+  },
+
+  page: async ({ context }, use) => {
+    const page = await context.newPage();
+
+    // Inject chrome.storage mock for all pages
+    await injectStorageMock(page);
+
+    await use(page);
+    await page.close();
   },
 });
 

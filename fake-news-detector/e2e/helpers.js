@@ -8,6 +8,65 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
+ * Chrome storage mock for E2E tests
+ */
+const chromeStorageMock = `
+  if (!window.chrome) {
+    window.chrome = {};
+  }
+  if (!window.chrome.storage) {
+    const storage = {};
+
+    window.chrome.storage = {
+      local: {
+        get: async (keys) => {
+          if (typeof keys === 'string') {
+            return { [keys]: storage[keys] };
+          }
+          if (Array.isArray(keys)) {
+            const result = {};
+            keys.forEach(key => {
+              if (storage[key] !== undefined) {
+                result[key] = storage[key];
+              }
+            });
+            return result;
+          }
+          if (keys === null || keys === undefined) {
+            return { ...storage };
+          }
+          return {};
+        },
+        set: async (items) => {
+          Object.assign(storage, items);
+        },
+        remove: async (keys) => {
+          const keysArray = Array.isArray(keys) ? keys : [keys];
+          keysArray.forEach(key => delete storage[key]);
+        },
+        clear: async () => {
+          Object.keys(storage).forEach(key => delete storage[key]);
+        }
+      },
+      sync: {
+        get: async (keys) => {
+          return window.chrome.storage.local.get(keys);
+        },
+        set: async (items) => {
+          return window.chrome.storage.local.set(items);
+        },
+        remove: async (keys) => {
+          return window.chrome.storage.local.remove(keys);
+        },
+        clear: async () => {
+          return window.chrome.storage.local.clear();
+        }
+      }
+    };
+  }
+`;
+
+/**
  * Get extension path
  */
 export function getExtensionPath() {
@@ -50,6 +109,14 @@ export async function loadExtension(context) {
 }
 
 /**
+ * Inject chrome.storage mock into page
+ * @param {import('@playwright/test').Page} page
+ */
+export async function injectStorageMock(page) {
+  await page.addInitScript(chromeStorageMock);
+}
+
+/**
  * Navigate to extension popup
  * @param {import('@playwright/test').Page} page
  * @param {string} extensionId
@@ -58,6 +125,7 @@ export async function openPopup(page, extensionId) {
   const popupUrl = `chrome-extension://${extensionId}/src/popup/popup.html`;
   await page.goto(popupUrl);
   await page.waitForLoadState('domcontentloaded');
+  // Mock is already injected via addInitScript in fixtures
 }
 
 /**
@@ -69,6 +137,7 @@ export async function openSidePanel(page, extensionId) {
   const sidePanelUrl = `chrome-extension://${extensionId}/src/sidepanel/panel.html`;
   await page.goto(sidePanelUrl);
   await page.waitForLoadState('domcontentloaded');
+  // Mock is already injected via addInitScript in fixtures
 }
 
 /**
