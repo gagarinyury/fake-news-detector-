@@ -213,6 +213,12 @@ function highlightClaims({ claims, riskMap }) {
 
 let currentTooltip = null;
 
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function showTooltip(event) {
   const mark = event.target;
   const fullClaim = mark.dataset.fullClaim || 'No details available';
@@ -227,18 +233,18 @@ function showTooltip(event) {
   const tooltip = document.createElement('div');
   tooltip.className = 'fnd-tooltip';
 
-  // Build tooltip content
+  // Build tooltip content (with XSS protection)
   let content = `<strong>Claim #${parseInt(claimIndex) + 1}</strong><br>`;
-  content += `${fullClaim}<br>`;
+  content += `${escapeHtml(fullClaim)}<br>`;
 
   if (evidence) {
-    content += `<small><strong>Source:</strong> ${evidence}</small><br>`;
+    content += `<small><strong>Source:</strong> ${escapeHtml(evidence)}</small><br>`;
   }
 
   // Accuracy badge with color
   const accuracyColor = accuracy === 'Accurate' ? '#0f9d58' :
                         accuracy === 'Questionable' ? '#f4b400' : '#5f6368';
-  content += `<small><strong>Assessment:</strong> <span style="color: ${accuracyColor}">${accuracy}</span></small>`;
+  content += `<small><strong>Assessment:</strong> <span style="color: ${accuracyColor}">${escapeHtml(accuracy)}</span></small>`;
 
   tooltip.innerHTML = content;
 

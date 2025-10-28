@@ -639,6 +639,8 @@ document.getElementById('btn-copy').addEventListener('click', async () => {
 // DEBUG LOGS
 // ============================================================================
 
+let logRefreshInterval = null;
+
 async function refreshLogs() {
   const logs = await getLogs();
   const container = document.getElementById('logs-container');
@@ -695,7 +697,7 @@ document.getElementById('btn-clear-logs').addEventListener('click', async () => 
 });
 
 // Auto-refresh logs every 3 seconds when panel is open
-setInterval(refreshLogs, 3000);
+logRefreshInterval = setInterval(refreshLogs, 3000);
 
 // Initial load
 refreshLogs();
@@ -868,13 +870,15 @@ loadPromptEditor();
 // AUTO-ANALYSIS MESSAGE LISTENER
 // ============================================================================
 
+let messageListener = null;
+
 /**
  * Listen for auto-analysis requests from background script
  * Triggered when:
  * - Page matches auto-analysis criteria (SMART/ALWAYS mode)
  * - Suspicious page detected (high suspicion score)
  */
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+messageListener = (msg, sender, sendResponse) => {
   if (msg.type === 'AUTO_ANALYZE_REQUEST') {
     logger.info('Auto-analysis request received', {
       tabId: msg.data.tabId,
@@ -905,7 +909,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
     return true; // Keep message channel open for async response
   }
-});
+};
+
+chrome.runtime.onMessage.addListener(messageListener);
 
 console.log('✓ Auto-analysis listener registered');
 
@@ -914,8 +920,21 @@ console.log('✓ Auto-analysis listener registered');
 // ============================================================================
 
 window.addEventListener('beforeunload', async () => {
-  console.log('Cleaning up AI sessions...');
+  console.log('Cleaning up resources...');
 
+  // Remove message listener
+  if (messageListener) {
+    chrome.runtime.onMessage.removeListener(messageListener);
+    messageListener = null;
+  }
+
+  // Clear interval
+  if (logRefreshInterval) {
+    clearInterval(logRefreshInterval);
+    logRefreshInterval = null;
+  }
+
+  // Cleanup AI sessions
   if (aiSession?.destroy) {
     await aiSession.destroy();
   }
