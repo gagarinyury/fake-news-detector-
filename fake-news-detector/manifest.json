@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Fake News Detector (Legacy AI)",
+  "name": "Fake News Detector",
   "version": "1.0.0",
-  "description": "On-device анализ новостных страниц: score, red flags, подсветка утверждений. Legacy Chrome Built-in AI API.",
+  "description": "On-device AI fact-checking: credibility scores, red flags, claim highlighting. Powered by Chrome Built-in AI (Gemini Nano).",
   "minimum_chrome_version": "138",
   "action": { "default_popup": "src/popup/popup.html", "default_title": "Analyze page" },
   "side_panel": {

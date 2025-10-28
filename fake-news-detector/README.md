@@ -1,105 +1,291 @@
-# Fake News Detector (Chrome Built-in AI)
+# 🔍 Fake News Detector
 
-On-device анализ новостных страниц с использованием Chrome Built-in AI APIs.
+**On-device AI fact-checking powered by Chrome Built-in AI (Gemini Nano)**
 
-## Возможности
+[![Chrome Version](https://img.shields.io/badge/Chrome-138%2B-blue)](https://www.google.com/chrome/)
+[![Manifest](https://img.shields.io/badge/Manifest-V3-green)](https://developer.chrome.com/docs/extensions/mv3/intro/)
+[![AI](https://img.shields.io/badge/AI-Gemini%20Nano-orange)](https://developer.chrome.com/docs/ai/built-in)
 
-- **Автоматический анализ** при загрузке страниц
-- **Credibility Score** (0-100) с цветовой индикацией на badge
-- **Red Flags** — выявление подозрительных паттернов
-- **Claims Extraction** — извлечение ключевых утверждений
-- **Offline Database** — мгновенная оценка известных источников
-- **Приватность** — вся обработка on-device, без отправки данных
+## ✨ Features
 
-## Требования
+### 🤖 Intelligent Auto-Analysis
+- **3-Level Badge System:**
+  - 🟢 **Instant** (0ms): Offline score from known sources database
+  - 🟡 **Cached** (10ms): Previous AI analysis results
+  - 🔵 **AI Analysis** (5-10s): Full on-device fact-checking
 
-- **Chrome 138+** (Built-in AI APIs Stable)
-- **~22 GB** свободного места (для AI модели)
-- **Интернет** только для первой загрузки модели
+### 🚨 Context-Aware Detection
+- **Suspicious Page Detection:** Automatic priority analysis for high-risk content
+- **Heuristic Scoring:** URL patterns, clickbait detection, domain reputation
+- **Smart Triggers:** Auto-analyze only news-like domains (privacy-first)
 
-## Установка
+### 📊 Comprehensive Analysis
+- **Credibility Score** (0-100) with color-coded badge
+- **Red Flags** detection (sources, bias, emotional language)
+- **Claim Extraction** with accuracy assessment and evidence
+- **Interactive Highlighting** on page with tooltips
+- **Language Detection** and summarization
 
-1. Скачать/клонировать репозиторий
-2. Открыть `chrome://extensions`
-3. Включить **Developer mode**
-4. **Load unpacked** → выбрать папку `fake-news-detector`
+### ⚙️ Advanced Customization
+- **🏆 Custom Prompt Editor** (Pro Feature!)
+  - Edit system and user prompts in real-time
+  - Template variables: `{{title}}`, `{{url}}`, `{{text}}`, `{{suspicionScore}}`
+  - Save/reset functionality with persistent storage
+- **Auto-Analysis Modes:**
+  - **OFF:** Manual analysis only
+  - **SMART:** Auto-analyze news sites (recommended)
+  - **ALWAYS:** Analyze all HTTP(S) pages
+- **Configurable Delay:** 0-10 seconds throttling
 
-## Структура проекта
+### 📈 Transparency
+- **Analysis Metrics:** Time, model used, suspicion score
+- **Debug Logs:** Full analysis trace with download option
+- **Cache Management:** 24-hour TTL with manual clear
+
+## 📋 Requirements
+
+- **Chrome 138+** with Built-in AI APIs enabled
+- **~22 GB** free disk space (for Gemini Nano model)
+- **Internet** (first-time model download only)
+
+### Verify AI Availability
+
+1. Open `chrome://on-device-internals/`
+2. Check that **Gemini Nano** status is "Ready" or "Downloading"
+3. If unavailable, follow [Chrome AI setup guide](https://developer.chrome.com/docs/ai/built-in)
+
+## 🚀 Installation
+
+1. **Clone or download** this repository
+2. Open Chrome and navigate to `chrome://extensions`
+3. Enable **Developer mode** (toggle in top-right)
+4. Click **Load unpacked**
+5. Select the `fake-news-detector` folder
+6. Wait for AI model download (first time only, ~1.5 GB)
+
+## 🎯 Usage
+
+### Quick Analysis
+1. Navigate to any news article
+2. Badge shows instant score from known sources
+3. Wait 3 seconds → automatic AI analysis (if enabled)
+4. Click extension icon for quick view
+
+### Full Analysis
+1. Click **"Full Analysis"** button in popup
+2. Side Panel opens with detailed results
+3. Review score, verdict, red flags, claims
+4. Click **"Highlight Claims"** to see on page
+
+### Customize AI Behavior
+1. Open Side Panel
+2. Expand **"✏️ Custom AI Prompts (Advanced)"**
+3. Edit system/user prompts
+4. Click **"Save Custom Prompts"**
+5. Next analysis uses your prompts
+
+## 📂 Project Structure
 
 ```
 fake-news-detector/
-├── manifest.json                # Manifest V3
+├── manifest.json                    # Manifest V3
 ├── src/
 │   ├── background/
-│   │   └── background.js       # Service worker orchestration
-│   ├── offscreen/
-│   │   ├── offscreen.html      # Offscreen document
-│   │   └── offscreen.js        # AI API calls
+│   │   └── background.js           # Orchestration, auto-analysis, badge
+│   ├── sidepanel/
+│   │   ├── panel.html              # Full analysis UI
+│   │   ├── panel.js                # AI integration, prompt management
+│   │   └── panel.css               # Responsive styles
 │   ├── popup/
-│   │   ├── popup.html          # UI
-│   │   ├── popup.js            # Popup logic
-│   │   └── popup.css           # Styles
+│   │   ├── popup.html              # Quick view UI
+│   │   ├── popup.js                # Cache display, actions
+│   │   └── popup.css               # Compact styles
 │   ├── content/
-│   │   ├── content.js          # Text extraction, highlighting
-│   │   └── overlay.css         # Highlight styles
+│   │   ├── content.js              # Text extraction, highlighting
+│   │   └── overlay.css             # Highlight/tooltip styles
 │   ├── shared/
-│   │   ├── knownSites.js       # Offline credibility database
-│   │   ├── json.js             # JSON parsing utils
-│   │   └── hashing.js          # URL hashing
+│   │   ├── settings.js             # User preferences (sync)
+│   │   ├── prompts.js              # Prompt management & templating
+│   │   ├── errorHandler.js         # Centralized error handling
+│   │   ├── logger.js               # Debug logging
+│   │   ├── knownSites.js           # Offline credibility DB (26 domains)
+│   │   ├── json.js                 # JSON parsing utilities
+│   │   └── hashing.js              # URL hashing for cache keys
 │   └── assets/
-│       └── icons/              # Extension icons
+│       └── icons/                  # Extension icons (16/32/128px)
 └── README.md
 ```
 
-## Как это работает
+## 🔧 How It Works
 
-1. **При загрузке страницы:**
-   - Background проверяет домен в offline DB → мгновенный badge
-   - Извлекает текст через content script
-   - Отправляет в offscreen document для AI анализа
-   - Обновляет badge с финальным score
-   - Кэширует результат на 24 часа
+### Architecture: Hybrid Popup + Side Panel
 
-2. **При открытии popup:**
-   - Загружает кэшированный анализ (если есть)
-   - Показывает: score, verdict, red flags, summary, язык
-   - Кнопки: Analyze (повторный), Copy Report, Clear Highlights
+```
+┌─────────────────┐
+│  Page Load      │
+└────────┬────────┘
+         │
+         v
+┌─────────────────────────────────────────┐
+│  Background Service Worker              │
+│  • Check knownSites → Badge (instant)   │
+│  • Check cache → Badge (cached)         │
+│  • Calculate suspicion score            │
+│  • If suspicious OR news → Schedule AI  │
+└────────┬────────────────────────────────┘
+         │
+         v
+┌─────────────────────────────────────────┐
+│  Side Panel (AI Analysis)               │
+│  • Initialize Gemini Nano session       │
+│  • Detect language                      │
+│  • Generate summary                     │
+│  • Analyze credibility with prompts     │
+│  • Parse structured JSON output         │
+│  • Cache result → Update badge          │
+└─────────────────────────────────────────┘
+```
 
-3. **AI анализ (offscreen):**
-   - Language Detection → определение языка текста
-   - Summarization → ключевые пункты
-   - Credibility Analysis → score + red flags + claims
+### Message Protocol
 
-## Протокол сообщений
+**Background ↔ Content Script:**
+```javascript
+GET_PAGE_TEXT        → {ok, text, url, title}
+HIGHLIGHT_CLAIMS     → {claims[], riskMap{}} → {ok, count}
+CLEAR_HIGHLIGHTS     → {ok}
+```
 
-**Background ↔ Content:**
-- `GET_PAGE_TEXT` → извлечение текста страницы
-- `HIGHLIGHT_CLAIMS` → подсветка утверждений
-- `CLEAR_HIGHLIGHTS` → очистка подсветок
+**Popup/Side Panel ↔ Background:**
+```javascript
+GET_CACHED_ANALYSIS  → {url} → {ok, data}
+OPEN_SIDE_PANEL      → {tabId} → {ok}
+REQUEST_PAGE_TEXT    → {tabId} → {ok, text, url, title}
+CACHE_RESULT         → {url, result} → {ok}
+AUTO_ANALYZE_REQUEST → {tabId, url, title, suspicionScore}
+```
 
-**Background ↔ Offscreen:**
-- `ANALYZE_TEXT` → AI анализ текста
+## 🧠 AI Technology Stack
 
-**Popup ↔ Background:**
-- `GET_ANALYSIS` → запрос анализа для вкладки
+### Chrome Built-in AI APIs
 
-## Технологии
+| API | Purpose | Usage |
+|-----|---------|-------|
+| **ai.languageModel** | Credibility analysis | Score, verdict, red flags, claims |
+| **ai.summarizer** | Text summarization | Key points extraction |
+| **translation.languageDetector** | Language detection | Auto-detect article language |
 
-- **Manifest V3**
-- **Chrome Built-in AI APIs:**
-  - `ai.languageModel` — credibility analysis
-  - `ai.summarizer` — text summarization
-  - `translation.languageDetector` — language detection
-- **Offscreen Documents** — для AI вызовов
-- **chrome.storage.local** — кэширование результатов
+### Hybrid API Strategy
 
-## Приватность
+Supports **both new and legacy** Chrome AI APIs:
 
-- ✅ Вся обработка происходит **on-device**
-- ✅ Никакие данные **не отправляются** на серверы
-- ✅ Offline база известных сайтов
-- ✅ Кэш хранится локально
+- **New API** (Chrome 128+): `systemPrompt`, `responseConstraint`
+- **Legacy API** (Chrome 138): `initialPrompts`, plain prompt
+- **Graceful fallback:** Auto-detect and use available API
 
-## Лицензия
+### Prompt System
 
-MIT
+**Template variables:**
+- `{{title}}` - Page title
+- `{{url}}` - Page URL
+- `{{text}}` - Article text (truncated)
+- `{{suspicionScore}}` - Heuristic suspicion (0-100)
+
+**Conditional blocks:**
+```
+{{#suspicionScore}}
+  ⚠️ SUSPICIOUS INDICATORS DETECTED
+  Pay extra attention to clickbait and sources.
+{{/suspicionScore}}
+```
+
+## 🔒 Privacy & Security
+
+- ✅ **100% On-Device Processing** (no external API calls)
+- ✅ **No Data Collection** (nothing leaves your browser)
+- ✅ **No Telemetry** (no analytics or tracking)
+- ✅ **Offline-First** (works without internet after setup)
+- ✅ **Open Source** (inspect all code)
+- ✅ **Minimal Permissions:**
+  - `activeTab` - Access current page only
+  - `storage` - Cache results locally
+  - `sidePanel` - Full analysis UI
+  - `scripting` - Content script injection
+
+## 🎨 UI/UX Highlights
+
+### Badge Intelligence
+- **Green (75-100):** High credibility
+- **Yellow (40-74):** Mixed credibility
+- **Red (0-39):** Low credibility
+- **⚠️:** Suspicious content detected
+- **?:** Not analyzed yet
+- **...:** Analysis in progress
+
+### Side Panel Features
+- **Collapsible sections** for clean UI
+- **Prompt editor** with syntax highlighting
+- **Settings persistence** via `chrome.storage.sync`
+- **Debug logs** with download/clear
+- **Responsive design** (400px width)
+
+## 📚 Specifications
+
+This project follows 18 architectural specifications:
+
+- ✅ **00_BUILD_CHAIN**: Project structure
+- ✅ **01_ARCH_SPEC**: Hybrid architecture
+- ✅ **02_MANIFEST_SPEC**: Manifest V3
+- ✅ **03_UI_SPEC**: Popup UI
+- ✅ **04_CONTENT_SCRIPT_SPEC**: Text extraction & highlighting
+- ✅ **05_POPUP_LOGIC_SPEC**: Popup logic
+- ✅ **06_PROMPT_SCHEMA_SPEC**: Prompt system
+- ✅ **14_SIDE_PANEL_SPEC**: Side Panel UI
+- ✅ **15_BADGE_AUTO_SPEC**: Auto-analysis
+- ✅ **16_KNOWN_SITES_SPEC**: Offline database
+- ✅ **17_ERROR_HANDLING_SPEC**: Error handling
+- ✅ **18_SHARED_UTILS_SPEC**: Utilities
+
+## 🐛 Troubleshooting
+
+### AI Not Available
+1. Check `chrome://on-device-internals/`
+2. Verify Chrome 138+ with AI enabled
+3. Ensure 22 GB+ free disk space
+4. Restart Chrome and wait for model download
+
+### Badge Not Updating
+1. Check extension is loaded (`chrome://extensions`)
+2. Verify Settings: Auto-analysis mode is not OFF
+3. Check console for errors (Developer Tools)
+
+### Highlighting Not Working
+1. Ensure page has completed loading
+2. Check that claims have valid snippets (2-4 words)
+3. Try refreshing the page
+
+## 🤝 Contributing
+
+Contributions welcome! Areas for improvement:
+
+- [ ] Multimodal analysis (images, videos)
+- [ ] Cloud fallback (optional API verification)
+- [ ] Automated tests
+- [ ] Localization (i18n)
+- [ ] Performance optimizations
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🏆 Built for Google Chrome Built-in AI Challenge
+
+This project demonstrates:
+- ✅ Innovative use of Chrome Built-in AI APIs
+- ✅ Privacy-first on-device processing
+- ✅ Context-aware intelligent analysis
+- ✅ User empowerment through customization
+- ✅ Production-ready implementation
+
+---
+
+**Made with ❤️ using Chrome Built-in AI (Gemini Nano)**
