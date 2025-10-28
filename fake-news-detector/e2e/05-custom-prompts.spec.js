@@ -138,7 +138,7 @@ test.describe('Custom Prompts', () => {
   });
 
   test('save prompts shows success message', async ({ page, extensionId }) => {
-    await openSidePanel(page, extensionId });
+    await openSidePanel(page, extensionId);
 
     // Modify prompts
     await page.locator('#system-prompt').fill('Test prompt with sufficient length for validation');
@@ -154,7 +154,7 @@ test.describe('Custom Prompts', () => {
   });
 
   test('empty prompts show validation error', async ({ page, extensionId }) => {
-    await openSidePanel(page, extensionId });
+    await openSidePanel(page, extensionId);
 
     // Clear system prompt
     await page.locator('#system-prompt').clear();
@@ -173,7 +173,7 @@ test.describe('Custom Prompts', () => {
   });
 
   test('template variables are documented', async ({ page, extensionId }) => {
-    await openSidePanel(page, extensionId });
+    await openSidePanel(page, extensionId);
 
     // Check for template variable documentation
     const userPromptValue = await page.locator('#user-prompt-template').inputValue();
