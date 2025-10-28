@@ -3,8 +3,12 @@ import { knownSites } from '../shared/knownSites.js';
 import { hashURL } from '../shared/hashing.js';
 import { logError, handleGracefully } from '../shared/errorHandler.js';
 import { getSettings, AUTO_ANALYSIS_MODES, isNewsLikeDomain, getSuspicionScore } from '../shared/settings.js';
+import { safeCacheSet, safeCacheGet, safeCacheRemove, schedulePeriodicCleanup } from '../shared/storage.js';
 
 console.log('Fake News Detector: Background service worker loaded');
+
+// Start periodic cache cleanup
+schedulePeriodicCleanup();
 
 // ============================================================================
 // SIDE PANEL MANAGEMENT
@@ -28,18 +32,18 @@ const TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 async function getCachedResult(url) {
   const key = `cache:${hashURL(url)}`;
-  const result = await chrome.storage.local.get(key);
+  const cachedData = await safeCacheGet(key);
 
-  if (result[key]) {
-    const age = Date.now() - result[key].timestamp;
+  if (cachedData) {
+    const age = Date.now() - cachedData.timestamp;
 
     if (age < TTL) {
       console.log('Cache hit for', url);
-      return result[key].data;
+      return cachedData.data;
     }
 
     // Remove stale cache
-    await chrome.storage.local.remove(key);
+    await safeCacheRemove(key);
     console.log('Cache expired for', url);
   }
 
@@ -48,14 +52,20 @@ async function getCachedResult(url) {
 
 async function cacheResult(url, textLength, data) {
   const key = `cache:${hashURL(url)}`;
-  await chrome.storage.local.set({
-    [key]: {
-      data,
-      timestamp: Date.now(),
-      textLength
-    }
+  const result = await safeCacheSet(key, {
+    data,
+    timestamp: Date.now(),
+    textLength
   });
-  console.log('Cached result for', url);
+
+  if (result.success) {
+    console.log('Cached result for', url);
+    if (result.hadToCleanup) {
+      console.log('(Storage was full, cleanup performed)');
+    }
+  } else {
+    console.error('Failed to cache result:', result.error);
+  }
 }
 
 // ============================================================================
