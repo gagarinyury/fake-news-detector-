@@ -4,8 +4,11 @@ import { hashURL } from '../shared/hashing.js';
 import { logError, handleGracefully } from '../shared/errorHandler.js';
 import { getSettings, AUTO_ANALYSIS_MODES, isNewsLikeDomain, getSuspicionScore } from '../shared/settings.js';
 import { safeCacheSet, safeCacheGet, safeCacheRemove, schedulePeriodicCleanup } from '../shared/storage.js';
+import { createLogger } from '../shared/logger.js';
 
-console.log('Fake News Detector: Background service worker loaded');
+const logger = createLogger('Background');
+
+logger.info('Background service worker loaded');
 
 // Start periodic cache cleanup
 schedulePeriodicCleanup();
@@ -17,7 +20,7 @@ schedulePeriodicCleanup();
 async function openSidePanel(tabId) {
   try {
     await chrome.sidePanel.open({ tabId });
-    console.log('Side panel opened for tab:', tabId);
+    logger.debug('Side panel opened for tab:', tabId);
   } catch (error) {
     logError(error, { context: 'openSidePanel', tabId });
     throw error;
@@ -38,13 +41,13 @@ async function getCachedResult(url) {
     const age = Date.now() - cachedData.timestamp;
 
     if (age < TTL) {
-      console.log('Cache hit for', url);
+      logger.debug('Cache hit', { url, age: Math.round(age / 1000) + 's' });
       return cachedData.data;
     }
 
     // Remove stale cache
     await safeCacheRemove(key);
-    console.log('Cache expired for', url);
+    logger.debug('Cache expired', { url, age: Math.round(age / 1000) + 's' });
   }
 
   return null;
@@ -59,9 +62,9 @@ async function cacheResult(url, textLength, data) {
   });
 
   if (result.success) {
-    console.log('Cached result for', url);
+    logger.debug('Cached result', { url, hadCleanup: result.hadToCleanup });
     if (result.hadToCleanup) {
-      console.log('(Storage was full, cleanup performed)');
+      logger.warn('Storage was full, cleanup performed');
     }
   } else {
     console.error('Failed to cache result:', result.error);
@@ -155,7 +158,7 @@ async function ensureContentScript(tabId) {
     return true;
   } catch (error) {
     // Content script not loaded, inject it
-    console.log('Content script not loaded, injecting...');
+    logger.debug('Content script not loaded, injecting...');
     try {
       await chrome.scripting.executeScript({
         target: { tabId },
@@ -165,7 +168,7 @@ async function ensureContentScript(tabId) {
         target: { tabId },
         files: ['src/content/overlay.css']
       });
-      console.log('Content script injected');
+      logger.debug('Content script injected successfully');
       // Wait a bit for script to initialize
       await new Promise(resolve => setTimeout(resolve, 100));
       return true;
@@ -212,7 +215,7 @@ const analysisQueue = new Map();       // url -> [tabId] (waiting for results)
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url?.startsWith('http')) {
-    console.log('📄 Page loaded:', tab.url);
+    logger.debug('Page loaded', { tabId, url: tab.url });
 
     try {
       const domain = new URL(tab.url).hostname;
@@ -224,7 +227,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       const offlineScore = knownSites[domain];
       if (offlineScore) {
         updateBadge(tabId, offlineScore, BADGE_MODES.INSTANT, { domain });
-        console.log(`✓ Level 1 (Instant): ${domain} = ${offlineScore}`);
+        logger.debug('Level 1 (Instant)', { domain, score: offlineScore });
       }
 
       // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -237,7 +240,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
           timestamp: cached.timestamp || Date.now(),
           redFlagsCount: cached.red_flags?.length || 0
         });
-        console.log(`✓ Level 2 (Cached): ${cached.score}`);
+        logger.debug('Level 2 (Cached)', { domain, score: cached.score });
         return; // Stop here if we have cache
       }
 
@@ -248,17 +251,17 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       // Check if auto-analysis is enabled
       if (settings.autoAnalysis === AUTO_ANALYSIS_MODES.OFF) {
         updateBadge(tabId, '?', BADGE_MODES.INSTANT, { domain });
-        console.log('⏸️  Auto-analysis disabled by user');
+        logger.debug('Auto-analysis disabled by user');
         return;
       }
 
       // Calculate suspicion score for context-aware analysis
       const suspicionScore = getSuspicionScore(tab.url, domain, tab.title);
-      console.log(`🔍 Suspicion score for ${domain}: ${suspicionScore}/100`);
+      logger.debug('Suspicion score calculated', { domain, suspicionScore });
 
       // 🚨 HIGH PRIORITY: Auto-analyze suspicious pages immediately
       if (suspicionScore >= 50) {
-        console.log(`⚠️  SUSPICIOUS PAGE DETECTED! Score: ${suspicionScore}`);
+        logger.warn('SUSPICIOUS PAGE DETECTED', { suspicionScore, url: tab.url });
         updateBadge(tabId, '⚠️', BADGE_MODES.INSTANT, { domain });
         chrome.action.setTitle({
           tabId,
@@ -270,7 +273,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         const timer = setTimeout(async () => {
           const currentTab = await chrome.tabs.get(tabId).catch(() => null);
           if (currentTab && currentTab.url === tab.url) {
-            console.log(`🤖 [PRIORITY] Analyzing suspicious page: ${tab.url}`);
+            logger.info('[PRIORITY] Analyzing suspicious page', { url: tab.url, suspicionScore });
             await triggerBackgroundAnalysis(tabId, tab.url, tab.title, domain, suspicionScore);
           }
         }, suspiciousDelay);
@@ -283,7 +286,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       if (settings.autoAnalysis === AUTO_ANALYSIS_MODES.SMART) {
         if (!isNewsLikeDomain(domain)) {
           updateBadge(tabId, '?', BADGE_MODES.INSTANT, { domain });
-          console.log(`⏸️  Skipping non-news domain: ${domain}`);
+          logger.debug('Skipping non-news domain', { domain });
           return;
         }
       }
@@ -294,16 +297,16 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       }
 
       // Schedule analysis with delay (throttling)
-      console.log(`⏳ Scheduling analysis in ${settings.analysisDelay}ms...`);
+      logger.debug('Scheduling analysis', { delay: settings.analysisDelay });
       const timer = setTimeout(async () => {
         // Verify user is still on the same page
         const currentTab = await chrome.tabs.get(tabId).catch(() => null);
         if (!currentTab || currentTab.url !== tab.url) {
-          console.log('⏸️  Tab changed, skipping analysis');
+          logger.debug('Tab changed, skipping analysis');
           return;
         }
 
-        console.log(`🤖 Triggering Level 3 (AI) analysis for: ${tab.url}`);
+        logger.info('Triggering Level 3 (AI) analysis', { url: tab.url });
         await triggerBackgroundAnalysis(tabId, tab.url, tab.title, domain);
       }, settings.analysisDelay);
 
@@ -326,7 +329,7 @@ async function triggerBackgroundAnalysis(tabId, url, title, domain, suspicionSco
   // RATE LIMITING: Check if analysis already in progress for this tab
   // ═══════════════════════════════════════════════════════════════════════
   if (activeAnalysisByTab.has(tabId)) {
-    console.log(`⏸️  Analysis already in progress for tab ${tabId}, skipping`);
+    logger.debug('Analysis already in progress', { tabId });
     return { skipped: true, reason: 'already_running' };
   }
 
@@ -335,7 +338,7 @@ async function triggerBackgroundAnalysis(tabId, url, title, domain, suspicionSco
   // ═══════════════════════════════════════════════════════════════════════
   for (const [otherTabId, analysisUrl] of activeAnalysisByTab.entries()) {
     if (analysisUrl === url && otherTabId !== tabId) {
-      console.log(`🔄 Same URL being analyzed in tab ${otherTabId}, queueing tab ${tabId}`);
+      logger.debug('Queueing duplicate URL analysis', { waitingTab: tabId, activeTab: otherTabId, url });
 
       // Queue this tab to receive results when other analysis completes
       if (!analysisQueue.has(url)) {
@@ -372,13 +375,13 @@ async function triggerBackgroundAnalysis(tabId, url, title, domain, suspicionSco
       }
     }).catch(error => {
       // Side Panel might not be ready yet, that's OK
-      console.warn('Side Panel not ready for auto-analysis:', error.message);
+      logger.warn('Side Panel not ready for auto-analysis', { error: error.message });
     });
 
     if (suspicionScore >= 50) {
-      console.log(`✓ [PRIORITY] Suspicious page analysis triggered (score: ${suspicionScore})`);
+      logger.info('[PRIORITY] Suspicious page analysis triggered', { suspicionScore });
     } else {
-      console.log(`✓ Auto-analysis triggered for tab ${tabId}`);
+      logger.debug('Auto-analysis triggered', { tabId });
     }
 
     return { started: true };
@@ -404,7 +407,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   if (activeAnalysisByTab.has(tabId)) {
     const url = activeAnalysisByTab.get(tabId);
     activeAnalysisByTab.delete(tabId);
-    console.log(`Tab ${tabId} closed, analysis for ${url} aborted`);
+    logger.debug('Tab closed, analysis aborted', { tabId, url });
   }
 });
 
@@ -515,7 +518,7 @@ async function handleCacheResult(url, result) {
   // Remove from active map
   completedTabs.forEach(tabId => {
     activeAnalysisByTab.delete(tabId);
-    console.log(`✓ Analysis completed for tab ${tabId}`);
+    logger.debug('Analysis completed', { tabId });
   });
 
   // Update badge for ALL tabs with this URL (including the one that completed)
@@ -531,7 +534,7 @@ async function handleCacheResult(url, result) {
   // Process queued tabs waiting for this result
   if (analysisQueue.has(url)) {
     const queuedTabs = analysisQueue.get(url);
-    console.log(`🔄 Updating ${queuedTabs.length} queued tabs with result`);
+    logger.debug('Updating queued tabs', { count: queuedTabs.length });
 
     for (const queuedTabId of queuedTabs) {
       // Update badge
@@ -550,18 +553,12 @@ async function handleCacheResult(url, result) {
 }
 
 async function handleHighlightClaims(tabId, claims, riskMap) {
-  console.log('=== BACKGROUND: HIGHLIGHT_CLAIMS ===');
-  console.log('Tab ID:', tabId);
-  console.log('Claims count:', claims?.length || 0);
-  console.log('Claims:', claims);
-  console.log('Risk map:', riskMap);
+  logger.debug('Highlighting claims', { tabId, claimsCount: claims?.length || 0 });
 
   // Ensure content script is loaded
   await ensureContentScript(tabId);
 
   return new Promise((resolve, reject) => {
-    console.log('📤 Sending HIGHLIGHT_CLAIMS message to content script...');
-
     chrome.tabs.sendMessage(
       tabId,
       { type: 'HIGHLIGHT_CLAIMS', data: { claims, riskMap } },
@@ -570,7 +567,7 @@ async function handleHighlightClaims(tabId, claims, riskMap) {
           console.error('✗ Message failed:', chrome.runtime.lastError.message);
           reject(new Error(chrome.runtime.lastError.message));
         } else if (response?.ok) {
-          console.log('✓ Highlight successful, count:', response.count);
+          logger.debug('Highlight successful', { count: response.count });
           resolve(response.count || 0);
         } else {
           console.error('✗ Highlight failed:', response);
