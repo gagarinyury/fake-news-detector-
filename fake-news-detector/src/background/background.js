@@ -206,6 +206,10 @@ async function getPageText(tabId) {
 // Track pending analysis timers
 const pendingAnalysis = new Map();
 
+// Rate limiting & deduplication
+const activeAnalysisByTab = new Map(); // tabId -> url (ongoing analyses)
+const analysisQueue = new Map();       // url -> [tabId] (waiting for results)
+
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url?.startsWith('http')) {
     console.log('📄 Page loaded:', tab.url);
@@ -314,10 +318,42 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
 /**
  * Trigger AI analysis in background via Side Panel
+ * WITH rate limiting and deduplication
  * @param {number} suspicionScore - Optional suspicion score (0-100)
  */
 async function triggerBackgroundAnalysis(tabId, url, title, domain, suspicionScore = 0) {
+  // ═══════════════════════════════════════════════════════════════════════
+  // RATE LIMITING: Check if analysis already in progress for this tab
+  // ═══════════════════════════════════════════════════════════════════════
+  if (activeAnalysisByTab.has(tabId)) {
+    console.log(`⏸️  Analysis already in progress for tab ${tabId}, skipping`);
+    return { skipped: true, reason: 'already_running' };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // DEDUPLICATION: Check if same URL is being analyzed in another tab
+  // ═══════════════════════════════════════════════════════════════════════
+  for (const [otherTabId, analysisUrl] of activeAnalysisByTab.entries()) {
+    if (analysisUrl === url && otherTabId !== tabId) {
+      console.log(`🔄 Same URL being analyzed in tab ${otherTabId}, queueing tab ${tabId}`);
+
+      // Queue this tab to receive results when other analysis completes
+      if (!analysisQueue.has(url)) {
+        analysisQueue.set(url, []);
+      }
+      analysisQueue.get(url).push(tabId);
+
+      // Show "analyzing" badge even though we're waiting
+      updateBadge(tabId, '...', BADGE_MODES.AI_ANALYZING, { domain });
+
+      return { queued: true, waitingFor: otherTabId };
+    }
+  }
+
   try {
+    // Mark as active
+    activeAnalysisByTab.set(tabId, url);
+
     // Show "analyzing" badge
     updateBadge(tabId, '...', BADGE_MODES.AI_ANALYZING, { domain });
 
@@ -345,18 +381,30 @@ async function triggerBackgroundAnalysis(tabId, url, title, domain, suspicionSco
       console.log(`✓ Auto-analysis triggered for tab ${tabId}`);
     }
 
+    return { started: true };
+
   } catch (error) {
     console.error('Background analysis trigger failed:', error);
     // Revert badge to unknown state
     updateBadge(tabId, '?', BADGE_MODES.INSTANT, { domain });
+    // Remove from active map on error
+    activeAnalysisByTab.delete(tabId);
+    return { error: error.message };
   }
 }
 
-// Clean up timers when tabs are closed
+// Clean up timers and active analyses when tabs are closed
 chrome.tabs.onRemoved.addListener((tabId) => {
   if (pendingAnalysis.has(tabId)) {
     clearTimeout(pendingAnalysis.get(tabId));
     pendingAnalysis.delete(tabId);
+  }
+
+  // Remove from active analyses
+  if (activeAnalysisByTab.has(tabId)) {
+    const url = activeAnalysisByTab.get(tabId);
+    activeAnalysisByTab.delete(tabId);
+    console.log(`Tab ${tabId} closed, analysis for ${url} aborted`);
   }
 });
 
@@ -452,10 +500,52 @@ async function handleCacheResult(url, result) {
   // Cache result from Side Panel
   await cacheResult(url, result.summary?.length || 0, result);
 
-  // Update badge
-  const tabs = await chrome.tabs.query({ url });
-  if (tabs.length > 0) {
-    updateBadge(tabs[0].id, result.score);
+  // ═══════════════════════════════════════════════════════════════════════
+  // ANALYSIS COMPLETION: Update all tabs and process queue
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Find tabs that were analyzing this URL
+  const completedTabs = [];
+  for (const [tabId, analysisUrl] of activeAnalysisByTab.entries()) {
+    if (analysisUrl === url) {
+      completedTabs.push(tabId);
+    }
+  }
+
+  // Remove from active map
+  completedTabs.forEach(tabId => {
+    activeAnalysisByTab.delete(tabId);
+    console.log(`✓ Analysis completed for tab ${tabId}`);
+  });
+
+  // Update badge for ALL tabs with this URL (including the one that completed)
+  const allTabs = await chrome.tabs.query({ url });
+  for (const tab of allTabs) {
+    updateBadge(tab.id, result.score, BADGE_MODES.AI_COMPLETE, {
+      domain: new URL(url).hostname,
+      timestamp: Date.now(),
+      redFlagsCount: result.red_flags?.length || 0
+    });
+  }
+
+  // Process queued tabs waiting for this result
+  if (analysisQueue.has(url)) {
+    const queuedTabs = analysisQueue.get(url);
+    console.log(`🔄 Updating ${queuedTabs.length} queued tabs with result`);
+
+    for (const queuedTabId of queuedTabs) {
+      // Update badge
+      updateBadge(queuedTabId, result.score, BADGE_MODES.AI_COMPLETE, {
+        domain: new URL(url).hostname,
+        timestamp: Date.now(),
+        redFlagsCount: result.red_flags?.length || 0
+      });
+
+      // Remove from active map (they were waiting)
+      activeAnalysisByTab.delete(queuedTabId);
+    }
+
+    analysisQueue.delete(url);
   }
 }
 
