@@ -865,6 +865,51 @@ document.getElementById('btn-reset-prompts').addEventListener('click', async () 
 loadPromptEditor();
 
 // ============================================================================
+// AUTO-ANALYSIS MESSAGE LISTENER
+// ============================================================================
+
+/**
+ * Listen for auto-analysis requests from background script
+ * Triggered when:
+ * - Page matches auto-analysis criteria (SMART/ALWAYS mode)
+ * - Suspicious page detected (high suspicion score)
+ */
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === 'AUTO_ANALYZE_REQUEST') {
+    logger.info('Auto-analysis request received', {
+      tabId: msg.data.tabId,
+      url: msg.data.url,
+      suspicionScore: msg.data.suspicionScore,
+      isSuspicious: msg.data.isSuspicious
+    });
+
+    console.log('🤖 AUTO-ANALYSIS TRIGGERED:', msg.data);
+
+    // Show special status for suspicious pages
+    if (msg.data.isSuspicious) {
+      setStatus(`⚠️ Analyzing suspicious content (${msg.data.suspicionScore}/100)...`);
+    } else {
+      setStatus('Auto-analyzing page...');
+    }
+
+    // Trigger analysis
+    performAnalysis()
+      .then(() => {
+        logger.info('Auto-analysis completed successfully');
+        sendResponse({ ok: true });
+      })
+      .catch(error => {
+        logger.error('Auto-analysis failed', { error: error.message });
+        sendResponse({ ok: false, error: error.message });
+      });
+
+    return true; // Keep message channel open for async response
+  }
+});
+
+console.log('✓ Auto-analysis listener registered');
+
+// ============================================================================
 // CLEANUP
 // ============================================================================
 

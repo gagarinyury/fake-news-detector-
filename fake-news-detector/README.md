@@ -8,16 +8,16 @@
 
 ## ✨ Features
 
-### 🤖 Intelligent Auto-Analysis
-- **3-Level Badge System:**
-  - 🟢 **Instant** (0ms): Offline score from known sources database
-  - 🟡 **Cached** (10ms): Previous AI analysis results
-  - 🔵 **AI Analysis** (5-10s): Full on-device fact-checking
+### 🤖 Intelligent Badge System
+- **3-Level Intelligence:**
+  - 🟢 **Instant** (0ms): Offline score from known sources database (26 trusted domains)
+  - 🟡 **Cached** (10ms): Previous AI analysis results (24h TTL)
+  - 🔵 **On-Demand** (5-10s): Full on-device AI fact-checking
 
-### 🚨 Context-Aware Detection
-- **Suspicious Page Detection:** Automatic priority analysis for high-risk content
-- **Heuristic Scoring:** URL patterns, clickbait detection, domain reputation
-- **Smart Triggers:** Auto-analyze only news-like domains (privacy-first)
+### 🔍 Smart Detection
+- **Known Sources Database:** Instant credibility scores for major news outlets
+- **Cache Management:** Fast retrieval of previous analyses
+- **Privacy-First:** All processing happens on your device
 
 ### 📊 Comprehensive Analysis
 - **Credibility Score** (0-100) with color-coded badge
@@ -27,15 +27,11 @@
 - **Language Detection** and summarization
 
 ### ⚙️ Advanced Customization
-- **🏆 Custom Prompt Editor** (Pro Feature!)
+- **🏆 Custom Prompt Editor** (Killer Feature!)
   - Edit system and user prompts in real-time
   - Template variables: `{{title}}`, `{{url}}`, `{{text}}`, `{{suspicionScore}}`
   - Save/reset functionality with persistent storage
-- **Auto-Analysis Modes:**
-  - **OFF:** Manual analysis only
-  - **SMART:** Auto-analyze news sites (recommended)
-  - **ALWAYS:** Analyze all HTTP(S) pages
-- **Configurable Delay:** 0-10 seconds throttling
+  - Empower researchers to customize AI behavior for different use cases
 
 ### 📈 Transparency
 - **Analysis Metrics:** Time, model used, suspicion score
@@ -65,17 +61,21 @@
 
 ## 🎯 Usage
 
-### Quick Analysis
-1. Navigate to any news article
-2. Badge shows instant score from known sources
-3. Wait 3 seconds → automatic AI analysis (if enabled)
-4. Click extension icon for quick view
+> **⚠️ Note:** Auto-analysis requires manual trigger via "Analyze" button. Background auto-analysis code is implemented but requires Side Panel to be open first (will be enhanced in future release).
 
-### Full Analysis
-1. Click **"Full Analysis"** button in popup
-2. Side Panel opens with detailed results
-3. Review score, verdict, red flags, claims
-4. Click **"Highlight Claims"** to see on page
+### Manual Analysis Workflow
+1. Navigate to any news article (e.g., BBC, NYTimes, etc.)
+2. Click extension icon in toolbar
+3. Click **"Full Analysis"** button in popup
+4. Side Panel opens automatically
+5. Click **"Analyze Current Page"** button
+6. View detailed results:
+   - Credibility Score (0-100) with color coding
+   - Red Flags (bias, sources, emotional language)
+   - Key Claims with accuracy assessment
+   - Summary and language detection
+   - Analysis metrics (time, model, suspicion score)
+7. Optionally: Click **"Highlight Claims"** in popup to see claims highlighted on the page
 
 ### Customize AI Behavior
 1. Open Side Panel
