@@ -37,13 +37,19 @@ export const test = base.extend({
   },
 
   page: async ({ context }, use) => {
-    const page = await context.newPage();
+    // Get the first page (already created by launchPersistentContext)
+    let page = context.pages()[0];
+
+    // If no pages exist, create new one
+    if (!page) {
+      page = await context.newPage();
+    }
 
     // Inject chrome.storage mock for all pages
     await injectStorageMock(page);
 
     await use(page);
-    await page.close();
+    // Don't close - it's the persistent context page
   },
 });
 
