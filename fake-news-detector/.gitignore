@@ -34,3 +34,6 @@ node_modules/
 /node_modules
 /coverage
 package-lock.json
+/playwright-report
+/test-results
+/.playwright
