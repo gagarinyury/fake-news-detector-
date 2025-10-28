@@ -31,3 +31,6 @@ node_modules/
 # Chrome extension unpacked
 *.pem
 *.crx
+/node_modules
+/coverage
+package-lock.json
