@@ -169,9 +169,16 @@ export async function setStorageData(page, key, value) {
  * @param {import('@playwright/test').Page} page
  */
 export async function clearStorage(page) {
-  await page.evaluate(async () => {
-    await chrome.storage.local.clear();
-  });
+  try {
+    await page.evaluate(async () => {
+      if (window.chrome && window.chrome.storage) {
+        await chrome.storage.local.clear();
+      }
+    });
+  } catch (error) {
+    // Ignore if chrome.storage not available yet
+    console.log('clearStorage: chrome.storage not available, skipping');
+  }
 }
 
 /**
