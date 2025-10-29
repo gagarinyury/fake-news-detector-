@@ -91,6 +91,32 @@
 
     </div>
 
+    <!-- Social Post Generation Section -->
+    <div id="social-post-generation" class="result-section" style="display: none;">
+      <h3>🚀 Create Social Post</h3>
+      <div class="social-buttons">
+        <button id="btn-gen-twitter" class="btn btn-secondary social-btn">Twitter</button>
+        <button id="btn-gen-instagram" class="btn btn-secondary social-btn">Instagram</button>
+        <button id="btn-gen-reddit" class="btn btn-secondary social-btn">Reddit</button>
+      </div>
+      <div id="social-post-output" class="social-post-output" style="display: none;">
+        <textarea id="social-post-text" class="prompt-textarea" rows="6"></textarea>
+        <button id="btn-copy-social-post" class="btn btn-primary">Copy Post</button>
+      </div>
+    </div>
+
+    <!-- Article Chat Section -->
+    <div id="article-chat-section" class="result-section" style="display: none;">
+        <h3>💬 Chat with Article</h3>
+        <div id="chat-container" class="chat-container">
+            <div id="chat-messages" class="chat-messages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" class="chat-input" placeholder="Ask a question about the article...">
+                <button id="btn-chat-send" class="btn btn-primary">Send</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Error Section -->
     <div id="error-section" class="error" style="display: none;">
       <h3>Error</h3>

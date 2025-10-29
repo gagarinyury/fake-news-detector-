@@ -192,6 +192,17 @@ function showResult(data) {
       suspicionEl.style.fontWeight = '600';
     }
   }
+
+  // Show social post generation if score is high
+  const socialPostSection = document.getElementById('social-post-generation');
+  const articleChatSection = document.getElementById('article-chat-section');
+  if (data.score >= 75) {
+    socialPostSection.style.display = 'block';
+    articleChatSection.style.display = 'block';
+  } else {
+    socialPostSection.style.display = 'none';
+    articleChatSection.style.display = 'none';
+  }
 }
 
 function hideResult() {
@@ -540,6 +551,7 @@ async function performAnalysis() {
     // Get page text
     updateProgress(18, 'Getting page content...');
     const pageData = await getPageText();
+    articleTextForChat = pageData.text; // Save for chat
 
     if (!pageData.text || pageData.text.length < 200) {
       throw new Error('Not enough text for analysis (minimum 200 characters)');
@@ -573,6 +585,54 @@ document.getElementById('btn-analyze').addEventListener('click', () => {
   performAnalysis();
 });
 
+async function generateSocialPost(platform) {
+  if (!currentAnalysis || !aiSession) {
+    setStatus('Analyze an article first', true);
+    return;
+  }
+
+  const socialPostOutput = document.getElementById('social-post-output');
+  const socialPostText = document.getElementById('social-post-text');
+  socialPostOutput.style.display = 'block';
+  socialPostText.value = 'Generating...';
+
+  let prompt = '';
+  const summary = currentAnalysis.summary || 'No summary available';
+
+  switch (platform) {
+    case 'twitter':
+      prompt = `Based on the following news summary, create a tweet (under 280 characters). Make it engaging and add 2-3 relevant hashtags. Summary: "${summary}"`;
+      break;
+    case 'instagram':
+      prompt = `Write an engaging Instagram post based on this news summary. Suggest a visual idea (photo or video) and add 5 popular hashtags. Summary: "${summary}"`;
+      break;
+    case 'reddit':
+      prompt = `Create a Reddit post title and body based on this news summary. The tone should be neutral and informative. Suggest a relevant subreddit. Summary: "${summary}"`;
+      break;
+  }
+
+  try {
+    const post = await aiSession.prompt(prompt);
+    socialPostText.value = post;
+  } catch (error) {
+    socialPostText.value = 'Failed to generate post.';
+    logError(error, { context: 'Social Post Generation' });
+  }
+}
+
+document.getElementById('btn-gen-twitter').addEventListener('click', () => generateSocialPost('twitter'));
+document.getElementById('btn-gen-instagram').addEventListener('click', () => generateSocialPost('instagram'));
+document.getElementById('btn-gen-reddit').addEventListener('click', () => generateSocialPost('reddit'));
+
+document.getElementById('btn-copy-social-post').addEventListener('click', async () => {
+  const textToCopy = document.getElementById('social-post-text').value;
+  if (textToCopy) {
+    await navigator.clipboard.writeText(textToCopy);
+    setStatus('Social post copied to clipboard');
+    setTimeout(() => setStatus('Analysis complete'), 2000);
+  }
+});
+
 document.getElementById('btn-copy').addEventListener('click', async () => {
   logger.debug('Copy button clicked');
 
@@ -596,6 +656,49 @@ document.getElementById('btn-copy').addEventListener('click', async () => {
     console.error('Copy failed:', error);
     setStatus('Failed to copy', true);
   }
+});
+
+// ============================================================================
+// CHAT HANDLERS
+// ============================================================================
+
+let articleTextForChat = '';
+
+async function handleChatMessage() {
+    const chatInput = document.getElementById('chat-input');
+    const userMessage = chatInput.value.trim();
+    if (!userMessage || !aiSession) {
+        return;
+    }
+
+    addMessageToChat(userMessage, 'user');
+    chatInput.value = '';
+
+    const prompt = `Based on the article provided, please answer the following question: "${userMessage}". Article: "${articleTextForChat.slice(0, 4000)}"`;
+
+    try {
+        const aiResponse = await aiSession.prompt(prompt);
+        addMessageToChat(aiResponse, 'ai');
+    } catch (error) {
+        addMessageToChat('Sorry, I encountered an error.', 'ai');
+        logError(error, { context: 'Article Chat' });
+    }
+}
+
+function addMessageToChat(message, sender) {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('chat-message', sender === 'user' ? 'user-message' : 'ai-message');
+    messageElement.textContent = message;
+    chatMessages.appendChild(messageElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+document.getElementById('btn-chat-send').addEventListener('click', handleChatMessage);
+document.getElementById('chat-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        handleChatMessage();
+    }
 });
 
 // ============================================================================
