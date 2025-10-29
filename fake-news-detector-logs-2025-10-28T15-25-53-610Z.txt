@@ -1,0 +1,114 @@
+[28.10.2025, 16:24:39] [INFO] [SidePanel] Logs cleared
+
+[28.10.2025, 16:25:10] [INFO] [SidePanel] Settings saved
+  Data: {
+  "analysisDelay": 3000,
+  "autoAnalysis": "always"
+}
+
+[28.10.2025, 16:25:12] [INFO] [SidePanel] Loaded prompts
+  Data: {
+  "hasCustom": true
+}
+
+[28.10.2025, 16:25:17] [INFO] [SidePanel] AI session created with legacy API (initialPrompts)
+
+[28.10.2025, 16:25:17] [INFO] [SidePanel] Starting AI analysis
+  Data: {
+  "suspicionScore": 0,
+  "textLength": 3896,
+  "title": "Israel Gaza war | Latest News & Updates | BBC News",
+  "url": "https://www.bbc.com/news/topics/c2vdnvdg6xxt"
+}
+
+[28.10.2025, 16:25:25] [DEBUG] [SidePanel] Sending prompt to AI
+  Data: {
+  "promptPreview": "Analyze this article for credibility and extract key claims.\n\nTitle: Israel Gaza war | Latest News & Updates | BBC News\nURL: https://www.bbc.com/news/topics/c2vdnvdg6xxt\n\n\nText (first 2000 chars):\nIsrael-Gaza war Israel says coffin from Hamas did not contain another hostage's body Israel accuses Ham",
+  "suspicionScore": 0
+}
+
+[28.10.2025, 16:25:42] [DEBUG] [SidePanel] Claims details
+  Data: {
+  "claims": [
+    {
+      "accuracy": "Accurate",
+      "claim": "Israel accuses Hamas of a 'clear violation'",
+      "evidence": "BBC News",
+      "index": 1,
+      "snippet": "'clear violation'",
+      "type": "object"
+    },
+    {
+      "accuracy": "Accurate",
+      "claim": "Israel says coffin from Hamas did not contain another hostage's body",
+      "evidence": "BBC News",
+      "index": 2,
+      "snippet": "coffin from Hamas",
+      "type": "object"
+    },
+    {
+      "accuracy": "Questionable",
+      "claim": "Doctors struggle investigate 'signs of torture'",
+      "evidence": "BBC News",
+      "index": 3,
+      "snippet": "'signs of torture'",
+      "type": "object"
+    },
+    {
+      "accuracy": "Accurate",
+      "claim": "UN's top court says Israel obliged to allow UN aid",
+      "evidence": "BBC News",
+      "index": 4,
+      "snippet": "'UN aid'",
+      "type": "object"
+    },
+    {
+      "accuracy": "Accurate",
+      "claim": "King of Jordan says troops won't enforce Gaza peace",
+      "evidence": "BBC News",
+      "index": 5,
+      "snippet": "'Gaza peace'",
+      "type": "object"
+    },
+    {
+      "accuracy": "Accurate",
+      "claim": "Children dying as they wait for Israel to enable evacuations",
+      "evidence": "BBC News",
+      "index": 6,
+      "snippet": "Gaza children",
+      "type": "object"
+    },
+    {
+      "accuracy": "Accurate",
+      "claim": "Worse than starting from scratch: rebuilding Gaza task",
+      "evidence": "BBC News",
+      "index": 7,
+      "snippet": "'Worse than'",
+      "type": "object"
+    },
+    {
+      "accuracy": "Accurate",
+      "claim": "Hamas ruled Gaza with an iron rod",
+      "evidence": "BBC News",
+      "index": 8,
+      "snippet": "'iron rod'",
+      "type": "object"
+    },
+    {
+      "accuracy": "Accurate",
+      "claim": "Palestinian celebrate return detainees freed",
+      "evidence": "BBC News",
+      "index": 9,
+      "snippet": "Palestinian celebrate",
+      "type": "object"
+    },
+    {
+      "accuracy": "Accurate",
+      "claim": "Chances of peace in Middle East",
+      "evidence": "BBC News",
+      "index": 10,
+      "snippet": "'Chances of peace'",
+      "type": "object"
+    }
+  ]
+}

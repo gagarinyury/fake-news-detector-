@@ -1,0 +1,876 @@
+
+Running 46 tests using 1 worker
+
+  ✓   1 [chromium-extension] › e2e/01-extension-load.spec.js:9:3 › Extension Loading › extension loads without errors (8.4s)
+  ✓   2 [chromium-extension] › e2e/01-extension-load.spec.js:31:3 › Extension Loading › service worker responds to messages (7.3s)
+Content script detected: [33mfalse[39m
+  ✓   3 [chromium-extension] › e2e/01-extension-load.spec.js:48:3 › Extension Loading › content script injects on web pages (2.8s)
+  ✓   4 [chromium-extension] › e2e/01-extension-load.spec.js:65:3 › Extension Loading › extension manifest is valid (7.0s)
+  ✓   5 [chromium-extension] › e2e/01-extension-load.spec.js:85:3 › Extension Loading › extension icons load correctly (6.8s)
+  ✘   6 [chromium-extension] › e2e/02-popup-ui.spec.js:9:3 › Popup UI › popup opens and displays correctly (11.8s)
+  ✘   7 [chromium-extension] › e2e/02-popup-ui.spec.js:23:3 › Popup UI › status message shows "Ready to analyze" (6.8s)
+  ✘   8 [chromium-extension] › e2e/02-popup-ui.spec.js:30:3 › Popup UI › full analysis button opens side panel (7.9s)
+Highlight button disabled: [33mfalse[39m
+  ✓   9 [chromium-extension] › e2e/02-popup-ui.spec.js:52:3 › Popup UI › highlight button is disabled when no analysis (6.8s)
+  ✓  10 [chromium-extension] › e2e/02-popup-ui.spec.js:63:3 › Popup UI › result section hidden initially (7.0s)
+Status for reuters.com: Ready
+  ✓  11 [chromium-extension] › e2e/02-popup-ui.spec.js:72:3 › Popup UI › known site badge shows instant score (8.9s)
+  ✘  12 [chromium-extension] › e2e/02-popup-ui.spec.js:93:3 › Popup UI › popup layout is responsive (6.9s)
+Button "Full Analysis" enabled: [33mtrue[39m
+Button "Highlight Claims" enabled: [33mtrue[39m
+Button "Clear Highlights" enabled: [33mtrue[39m
+Button "Copy Report" enabled: [33mtrue[39m
+  ✓  13 [chromium-extension] › e2e/02-popup-ui.spec.js:108:3 › Popup UI › all buttons are clickable (6.8s)
+  ✘  14 [chromium-extension] › e2e/03-sidepanel.spec.js:9:3 › Side Panel › side panel opens and displays UI (11.8s)
+  ✘  15 [chromium-extension] › e2e/03-sidepanel.spec.js:22:3 › Side Panel › analyze button is present (11.8s)
+  ✘  16 [chromium-extension] › e2e/03-sidepanel.spec.js:33:3 › Side Panel › status shows "Ready to analyze" (6.8s)
+  ✓  17 [chromium-extension] › e2e/03-sidepanel.spec.js:40:3 › Side Panel › progress section is hidden initially (6.8s)
+  ✓  18 [chromium-extension] › e2e/03-sidepanel.spec.js:51:3 › Side Panel › result section is hidden initially (6.8s)
+  ✘  19 [chromium-extension] › e2e/03-sidepanel.spec.js:62:3 › Side Panel › settings section exists (11.8s)
+  ✘  20 [chromium-extension] › e2e/03-sidepanel.spec.js:78:3 › Side Panel › custom prompts editor exists (11.8s)
+  ✘  21 [chromium-extension] › e2e/03-sidepanel.spec.js:93:3 › Side Panel › debug logs section exists (11.8s)
+  ✘  22 [chromium-extension] › e2e/03-sidepanel.spec.js:106:3 › Side Panel › copy button exists in results (11.8s)
+  ✓  23 [chromium-extension] › e2e/03-sidepanel.spec.js:113:3 › Side Panel › all sections are properly styled (7.0s)
+  ✘  24 [chromium-extension] › e2e/04-settings.spec.js:14:3 › Settings Persistence › default settings load correctly (1.8s)
+  ✘  25 [chromium-extension] › e2e/04-settings.spec.js:32:3 › Settings Persistence › changing auto-analysis mode saves to storage (1.8s)
+  ✘  26 [chromium-extension] › e2e/04-settings.spec.js:54:3 › Settings Persistence › changing delay saves to storage (1.8s)
+  ✘  27 [chromium-extension] › e2e/04-settings.spec.js:71:3 › Settings Persistence › settings persist after page reload (1.8s)
+  ✘  28 [chromium-extension] › e2e/04-settings.spec.js:97:3 › Settings Persistence › all three auto-analysis modes are available (1.8s)
+  ✘  29 [chromium-extension] › e2e/04-settings.spec.js:113:3 › Settings Persistence › delay slider has correct range (1.8s)
+  ✘  30 [chromium-extension] › e2e/04-settings.spec.js:137:3 › Settings Persistence › save settings shows success message (1.8s)
+  ✘  31 [chromium-extension] › e2e/05-custom-prompts.spec.js:13:3 › Custom Prompts › default prompts load in editor (1.8s)
+  ✘  32 [chromium-extension] › e2e/05-custom-prompts.spec.js:31:3 › Custom Prompts › can edit system prompt (1.8s)
+  ✘  33 [chromium-extension] › e2e/05-custom-prompts.spec.js:45:3 › Custom Prompts › can edit user prompt template (1.7s)
+  ✘  34 [chromium-extension] › e2e/05-custom-prompts.spec.js:58:3 › Custom Prompts › saving custom prompts stores in chrome.storage (1.9s)
+  ✘  35 [chromium-extension] › e2e/05-custom-prompts.spec.js:87:3 › Custom Prompts › saved prompts persist after reload (1.8s)
+  ✘  36 [chromium-extension] › e2e/05-custom-prompts.spec.js:115:3 › Custom Prompts › reset prompts button restores defaults (1.8s)
+  ✘  37 [chromium-extension] › e2e/05-custom-prompts.spec.js:140:3 › Custom Prompts › save prompts shows success message (1.8s)
+  ✘  38 [chromium-extension] › e2e/05-custom-prompts.spec.js:156:3 › Custom Prompts › empty prompts show validation error (1.8s)
+  ✘  39 [chromium-extension] › e2e/05-custom-prompts.spec.js:175:3 › Custom Prompts › template variables are documented (1.8s)
+  ✘  40 [chromium-extension] › e2e/06-known-sites-cache.spec.js:13:3 › Known Sites & Cache › known high-credibility site shows instant score (1.8s)
+  ✘  41 [chromium-extension] › e2e/06-known-sites-cache.spec.js:31:3 › Known Sites & Cache › known low-credibility site detected (1.9s)
+  ✘  42 [chromium-extension] › e2e/06-known-sites-cache.spec.js:45:3 › Known Sites & Cache › unknown site shows analysis prompt (1.8s)
+  ✘  43 [chromium-extension] › e2e/06-known-sites-cache.spec.js:59:3 › Known Sites & Cache › cache stores analysis results (1.6s)
+  ✘  44 [chromium-extension] › e2e/06-known-sites-cache.spec.js:112:3 › Known Sites & Cache › cache has TTL of 24 hours (1.8s)
+  ✘  45 [chromium-extension] › e2e/06-known-sites-cache.spec.js:137:3 › Known Sites & Cache › multiple sites can be cached (1.8s)
+  ✘  46 [chromium-extension] › e2e/06-known-sites-cache.spec.js:163:3 › Known Sites & Cache › cache entries have required structure (1.8s)
+
+
+  1) [chromium-extension] › e2e/02-popup-ui.spec.js:9:3 › Popup UI › popup opens and displays correctly 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('#btn-clear-highlight')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('#btn-clear-highlight')[22m
+
+
+      18 |     await expect(page.locator('#btn-full-analysis')).toBeVisible();
+      19 |     await expect(page.locator('#btn-highlight')).toBeVisible();
+    > 20 |     await expect(page.locator('#btn-clear-highlight')).toBeVisible();
+         |                                                        ^
+      21 |   });
+      22 |
+      23 |   test('status message shows "Ready to analyze"', async ({ page, extensionId }) => {
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/02-popup-ui.spec.js:20:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/02-popup-ui-Popup-UI-popup-opens-and-displays-correctly-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/02-popup-ui-Popup-UI-popup-opens-and-displays-correctly-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium-extension] › e2e/02-popup-ui.spec.js:23:3 › Popup UI › status message shows "Ready to analyze" 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected substring: [32m"Ready to analyze"[39m
+    Received string:    [31m"Ready"[39m
+
+      25 |
+      26 |     const statusText = await page.locator('#status').textContent();
+    > 27 |     expect(statusText).toContain('Ready to analyze');
+         |                        ^
+      28 |   });
+      29 |
+      30 |   test('full analysis button opens side panel', async ({ context, page, extensionId }) => {
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/02-popup-ui.spec.js:27:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/02-popup-ui-Popup-UI-status-message-shows-Ready-to-analyze--chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/02-popup-ui-Popup-UI-status-message-shows-Ready-to-analyze--chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium-extension] › e2e/02-popup-ui.spec.js:30:3 › Popup UI › full analysis button opens side panel 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeDefined[2m()[22m
+
+    Received: [31mundefined[39m
+
+      43 |     );
+      44 |
+    > 45 |     expect(sidePanelPage).toBeDefined();
+         |                           ^
+      46 |
+      47 |     if (sidePanelPage) {
+      48 |       await sidePanelPage.close();
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/02-popup-ui.spec.js:45:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/02-popup-ui-Popup-UI-full-analysis-button-opens-side-panel-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/02-popup-ui-Popup-UI-full-analysis-button-opens-side-panel-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium-extension] › e2e/02-popup-ui.spec.js:93:3 › Popup UI › popup layout is responsive ───
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: > [32m400[39m
+    Received:   [31m180[39m
+
+      103 |     expect(dimensions.width).toBeGreaterThan(300);
+      104 |     expect(dimensions.width).toBeLessThan(800);
+    > 105 |     expect(dimensions.height).toBeGreaterThan(400);
+          |                               ^
+      106 |   });
+      107 |
+      108 |   test('all buttons are clickable', async ({ page, extensionId }) => {
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/02-popup-ui.spec.js:105:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/02-popup-ui-Popup-UI-popup-layout-is-responsive-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/02-popup-ui-Popup-UI-popup-layout-is-responsive-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  5) [chromium-extension] › e2e/03-sidepanel.spec.js:9:3 › Side Panel › side panel opens and displays UI 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('#progress-section')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('#progress-section')[22m
+    [2m    9 × locator resolved to <div id="progress-section">…</div>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      13 |     await expect(page.locator('#btn-analyze')).toBeVisible();
+      14 |     await expect(page.locator('#status')).toBeVisible();
+    > 15 |     await expect(page.locator('#progress-section')).toBeVisible();
+         |                                                     ^
+      16 |
+      17 |     // Check tabs/sections
+      18 |     await expect(page.locator('h2').filter({ hasText: 'Analysis Results' })).toBeVisible();
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/03-sidepanel.spec.js:15:53
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-side-panel-opens-and-displays-UI-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-side-panel-opens-and-displays-UI-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  6) [chromium-extension] › e2e/03-sidepanel.spec.js:22:3 › Side Panel › analyze button is present ─
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeEnabled[2m([22m[2m)[22m failed
+
+    Locator:  locator('#btn-analyze')
+    Expected: enabled
+    Received: disabled
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeEnabled" with timeout 5000ms[22m
+    [2m  - waiting for locator('#btn-analyze')[22m
+    [2m    9 × locator resolved to <button disabled id="btn-analyze" class="btn btn-primary">↵      Analyze Current Page↵    </button>[22m
+    [2m      - unexpected value "disabled"[22m
+
+
+      25 |     const analyzeBtn = page.locator('#btn-analyze');
+      26 |     await expect(analyzeBtn).toBeVisible();
+    > 27 |     await expect(analyzeBtn).toBeEnabled();
+         |                              ^
+      28 |
+      29 |     const buttonText = await analyzeBtn.textContent();
+      30 |     expect(buttonText).toContain('Analyze');
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/03-sidepanel.spec.js:27:30
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-analyze-button-is-present-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-analyze-button-is-present-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  7) [chromium-extension] › e2e/03-sidepanel.spec.js:33:3 › Side Panel › status shows "Ready to analyze" 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoContain[2m([22m[32mexpected[39m[2m) // indexOf[22m
+
+    Expected substring: [32m"ready"[39m
+    Received string:    [31m"navigate to a webpage to analyze"[39m
+
+      35 |
+      36 |     const status = await page.locator('#status').textContent();
+    > 37 |     expect(status.toLowerCase()).toContain('ready');
+         |                                  ^
+      38 |   });
+      39 |
+      40 |   test('progress section is hidden initially', async ({ page, extensionId }) => {
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/03-sidepanel.spec.js:37:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-status-shows-Ready-to-analyze--chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-status-shows-Ready-to-analyze--chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  8) [chromium-extension] › e2e/03-sidepanel.spec.js:62:3 › Side Panel › settings section exists ───
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('input[value="SMART"]')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('input[value="SMART"]')[22m
+
+
+      65 |     // Check for auto-analysis mode radios
+      66 |     const smartModeRadio = page.locator('input[value="SMART"]');
+    > 67 |     await expect(smartModeRadio).toBeVisible();
+         |                                  ^
+      68 |
+      69 |     // Check for delay slider
+      70 |     const delaySlider = page.locator('#delay-slider');
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/03-sidepanel.spec.js:67:34
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-settings-section-exists-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-settings-section-exists-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  9) [chromium-extension] › e2e/03-sidepanel.spec.js:78:3 › Side Panel › custom prompts editor exists 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('#system-prompt')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('#system-prompt')[22m
+    [2m    9 × locator resolved to <textarea rows="8" id="system-prompt" class="prompt-textarea" placeholder="Enter system prompt..."></textarea>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      83 |     const userPromptTemplate = page.locator('#user-prompt-template');
+      84 |
+    > 85 |     await expect(systemPrompt).toBeVisible();
+         |                                ^
+      86 |     await expect(userPromptTemplate).toBeVisible();
+      87 |
+      88 |     // Check for save/reset buttons
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/03-sidepanel.spec.js:85:32
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-custom-prompts-editor-exists-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-custom-prompts-editor-exists-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  10) [chromium-extension] › e2e/03-sidepanel.spec.js:93:3 › Side Panel › debug logs section exists 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('#logs-container')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('#logs-container')[22m
+    [2m    9 × locator resolved to <div id="logs-container" class="logs-container">…</div>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+       96 |     // Check for logs container
+       97 |     const logsContainer = page.locator('#logs-container');
+    >  98 |     await expect(logsContainer).toBeVisible();
+          |                                 ^
+       99 |
+      100 |     // Check for log buttons
+      101 |     await expect(page.locator('#btn-refresh-logs')).toBeVisible();
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/03-sidepanel.spec.js:98:33
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-debug-logs-section-exists-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-debug-logs-section-exists-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  11) [chromium-extension] › e2e/03-sidepanel.spec.js:106:3 › Side Panel › copy button exists in results 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator:  locator('#btn-copy')
+    Expected: visible
+    Received: hidden
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('#btn-copy')[22m
+    [2m    9 × locator resolved to <button id="btn-copy" class="btn btn-secondary">Copy Report (JSON)</button>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      108 |
+      109 |     const copyBtn = page.locator('#btn-copy');
+    > 110 |     await expect(copyBtn).toBeVisible();
+          |                           ^
+      111 |   });
+      112 |
+      113 |   test('all sections are properly styled', async ({ page, extensionId }) => {
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/03-sidepanel.spec.js:110:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-copy-button-exists-in-results-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/03-sidepanel-Side-Panel-copy-button-exists-in-results-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  12) [chromium-extension] › e2e/04-settings.spec.js:14:3 › Settings Persistence › default settings load correctly 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/04-settings.spec.js:11:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-9b966-ult-settings-load-correctly-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-9b966-ult-settings-load-correctly-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  13) [chromium-extension] › e2e/04-settings.spec.js:32:3 › Settings Persistence › changing auto-analysis mode saves to storage 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/04-settings.spec.js:11:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-415c4-lysis-mode-saves-to-storage-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-415c4-lysis-mode-saves-to-storage-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  14) [chromium-extension] › e2e/04-settings.spec.js:54:3 › Settings Persistence › changing delay saves to storage 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/04-settings.spec.js:11:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-4f2cd-ging-delay-saves-to-storage-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-4f2cd-ging-delay-saves-to-storage-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  15) [chromium-extension] › e2e/04-settings.spec.js:71:3 › Settings Persistence › settings persist after page reload 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/04-settings.spec.js:11:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-d4a8e-s-persist-after-page-reload-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-d4a8e-s-persist-after-page-reload-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  16) [chromium-extension] › e2e/04-settings.spec.js:97:3 › Settings Persistence › all three auto-analysis modes are available 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/04-settings.spec.js:11:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-6e6b8-nalysis-modes-are-available-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-6e6b8-nalysis-modes-are-available-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  17) [chromium-extension] › e2e/04-settings.spec.js:113:3 › Settings Persistence › delay slider has correct range 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/04-settings.spec.js:11:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-17bd0-ay-slider-has-correct-range-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-17bd0-ay-slider-has-correct-range-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  18) [chromium-extension] › e2e/04-settings.spec.js:137:3 › Settings Persistence › save settings shows success message 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/04-settings.spec.js:11:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-decae-tings-shows-success-message-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/04-settings-Settings-Persi-decae-tings-shows-success-message-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  19) [chromium-extension] › e2e/05-custom-prompts.spec.js:13:3 › Custom Prompts › default prompts load in editor 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/05-custom-prompts.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-1d845-ault-prompts-load-in-editor-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-1d845-ault-prompts-load-in-editor-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  20) [chromium-extension] › e2e/05-custom-prompts.spec.js:31:3 › Custom Prompts › can edit system prompt 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/05-custom-prompts.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-Prompts-can-edit-system-prompt-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-Prompts-can-edit-system-prompt-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  21) [chromium-extension] › e2e/05-custom-prompts.spec.js:45:3 › Custom Prompts › can edit user prompt template 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/05-custom-prompts.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-74a92-n-edit-user-prompt-template-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-74a92-n-edit-user-prompt-template-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  22) [chromium-extension] › e2e/05-custom-prompts.spec.js:58:3 › Custom Prompts › saving custom prompts stores in chrome.storage 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/05-custom-prompts.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-4f996-ts-stores-in-chrome-storage-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-4f996-ts-stores-in-chrome-storage-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  23) [chromium-extension] › e2e/05-custom-prompts.spec.js:87:3 › Custom Prompts › saved prompts persist after reload 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/05-custom-prompts.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-9e074-rompts-persist-after-reload-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-9e074-rompts-persist-after-reload-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  24) [chromium-extension] › e2e/05-custom-prompts.spec.js:115:3 › Custom Prompts › reset prompts button restores defaults 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/05-custom-prompts.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-fa8a9-ts-button-restores-defaults-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-fa8a9-ts-button-restores-defaults-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  25) [chromium-extension] › e2e/05-custom-prompts.spec.js:140:3 › Custom Prompts › save prompts shows success message 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/05-custom-prompts.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-83567-ompts-shows-success-message-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-83567-ompts-shows-success-message-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  26) [chromium-extension] › e2e/05-custom-prompts.spec.js:156:3 › Custom Prompts › empty prompts show validation error 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/05-custom-prompts.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-6946a-ompts-show-validation-error-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-6946a-ompts-show-validation-error-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  27) [chromium-extension] › e2e/05-custom-prompts.spec.js:175:3 › Custom Prompts › template variables are documented 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/05-custom-prompts.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-85b05-te-variables-are-documented-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/05-custom-prompts-Custom-P-85b05-te-variables-are-documented-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  28) [chromium-extension] › e2e/06-known-sites-cache.spec.js:13:3 › Known Sites & Cache › known high-credibility site shows instant score 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/06-known-sites-cache.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-dbe70-ty-site-shows-instant-score-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-dbe70-ty-site-shows-instant-score-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  29) [chromium-extension] › e2e/06-known-sites-cache.spec.js:31:3 › Known Sites & Cache › known low-credibility site detected 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/06-known-sites-cache.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-2285b-w-credibility-site-detected-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-2285b-w-credibility-site-detected-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  30) [chromium-extension] › e2e/06-known-sites-cache.spec.js:45:3 › Known Sites & Cache › unknown site shows analysis prompt 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/06-known-sites-cache.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-437a1--site-shows-analysis-prompt-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-437a1--site-shows-analysis-prompt-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  31) [chromium-extension] › e2e/06-known-sites-cache.spec.js:59:3 › Known Sites & Cache › cache stores analysis results 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/06-known-sites-cache.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-08f5a-che-stores-analysis-results-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-08f5a-che-stores-analysis-results-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  32) [chromium-extension] › e2e/06-known-sites-cache.spec.js:112:3 › Known Sites & Cache › cache has TTL of 24 hours 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/06-known-sites-cache.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-0cb68-e-cache-has-TTL-of-24-hours-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-0cb68-e-cache-has-TTL-of-24-hours-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  33) [chromium-extension] › e2e/06-known-sites-cache.spec.js:137:3 › Known Sites & Cache › multiple sites can be cached 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/06-known-sites-cache.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-e0b10-ultiple-sites-can-be-cached-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-e0b10-ultiple-sites-can-be-cached-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  34) [chromium-extension] › e2e/06-known-sites-cache.spec.js:163:3 › Known Sites & Cache › cache entries have required structure 
+
+    Error: page.evaluate: TypeError: Cannot read properties of undefined (reading 'local')
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at eval (eval at evaluate (:290:30), <anonymous>:2:26)
+        at UtilityScript.evaluate (<anonymous>:292:16)
+        at UtilityScript.<anonymous> (<anonymous>:1:44)
+        at clearStorage (/Users/yurygagarin/code/google/fake-news-detector/e2e/helpers.js:103:14)
+        at /Users/yurygagarin/code/google/fake-news-detector/e2e/06-known-sites-cache.spec.js:10:11
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-c217d-ies-have-required-structure-chromium-extension/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/06-known-sites-cache-Known-c217d-ies-have-required-structure-chromium-extension/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  34 failed
+    [chromium-extension] › e2e/02-popup-ui.spec.js:9:3 › Popup UI › popup opens and displays correctly 
+    [chromium-extension] › e2e/02-popup-ui.spec.js:23:3 › Popup UI › status message shows "Ready to analyze" 
+    [chromium-extension] › e2e/02-popup-ui.spec.js:30:3 › Popup UI › full analysis button opens side panel 
+    [chromium-extension] › e2e/02-popup-ui.spec.js:93:3 › Popup UI › popup layout is responsive ────
+    [chromium-extension] › e2e/03-sidepanel.spec.js:9:3 › Side Panel › side panel opens and displays UI 
+    [chromium-extension] › e2e/03-sidepanel.spec.js:22:3 › Side Panel › analyze button is present ──
+    [chromium-extension] › e2e/03-sidepanel.spec.js:33:3 › Side Panel › status shows "Ready to analyze" 
+    [chromium-extension] › e2e/03-sidepanel.spec.js:62:3 › Side Panel › settings section exists ────
+    [chromium-extension] › e2e/03-sidepanel.spec.js:78:3 › Side Panel › custom prompts editor exists 
+    [chromium-extension] › e2e/03-sidepanel.spec.js:93:3 › Side Panel › debug logs section exists ──
+    [chromium-extension] › e2e/03-sidepanel.spec.js:106:3 › Side Panel › copy button exists in results 
+    [chromium-extension] › e2e/04-settings.spec.js:14:3 › Settings Persistence › default settings load correctly 
+    [chromium-extension] › e2e/04-settings.spec.js:32:3 › Settings Persistence › changing auto-analysis mode saves to storage 
+    [chromium-extension] › e2e/04-settings.spec.js:54:3 › Settings Persistence › changing delay saves to storage 
+    [chromium-extension] › e2e/04-settings.spec.js:71:3 › Settings Persistence › settings persist after page reload 
+    [chromium-extension] › e2e/04-settings.spec.js:97:3 › Settings Persistence › all three auto-analysis modes are available 
+    [chromium-extension] › e2e/04-settings.spec.js:113:3 › Settings Persistence › delay slider has correct range 
+    [chromium-extension] › e2e/04-settings.spec.js:137:3 › Settings Persistence › save settings shows success message 
+    [chromium-extension] › e2e/05-custom-prompts.spec.js:13:3 › Custom Prompts › default prompts load in editor 
+    [chromium-extension] › e2e/05-custom-prompts.spec.js:31:3 › Custom Prompts › can edit system prompt 
+    [chromium-extension] › e2e/05-custom-prompts.spec.js:45:3 › Custom Prompts › can edit user prompt template 
+    [chromium-extension] › e2e/05-custom-prompts.spec.js:58:3 › Custom Prompts › saving custom prompts stores in chrome.storage 
+    [chromium-extension] › e2e/05-custom-prompts.spec.js:87:3 › Custom Prompts › saved prompts persist after reload 
+    [chromium-extension] › e2e/05-custom-prompts.spec.js:115:3 › Custom Prompts › reset prompts button restores defaults 
+    [chromium-extension] › e2e/05-custom-prompts.spec.js:140:3 › Custom Prompts › save prompts shows success message 
+    [chromium-extension] › e2e/05-custom-prompts.spec.js:156:3 › Custom Prompts › empty prompts show validation error 
+    [chromium-extension] › e2e/05-custom-prompts.spec.js:175:3 › Custom Prompts › template variables are documented 
+    [chromium-extension] › e2e/06-known-sites-cache.spec.js:13:3 › Known Sites & Cache › known high-credibility site shows instant score 
+    [chromium-extension] › e2e/06-known-sites-cache.spec.js:31:3 › Known Sites & Cache › known low-credibility site detected 
+    [chromium-extension] › e2e/06-known-sites-cache.spec.js:45:3 › Known Sites & Cache › unknown site shows analysis prompt 
+    [chromium-extension] › e2e/06-known-sites-cache.spec.js:59:3 › Known Sites & Cache › cache stores analysis results 
+    [chromium-extension] › e2e/06-known-sites-cache.spec.js:112:3 › Known Sites & Cache › cache has TTL of 24 hours 
+    [chromium-extension] › e2e/06-known-sites-cache.spec.js:137:3 › Known Sites & Cache › multiple sites can be cached 
+    [chromium-extension] › e2e/06-known-sites-cache.spec.js:163:3 › Known Sites & Cache › cache entries have required structure 
+  12 passed (4.1m)
