@@ -14,6 +14,98 @@ logger.info('Background service worker loaded');
 schedulePeriodicCleanup();
 
 // ============================================================================
+// CONTEXT MENUS
+// ============================================================================
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: 'summarize-selection',
+    title: 'Summarize selection',
+    contexts: ['selection']
+  });
+
+  chrome.contextMenus.create({
+    id: 'translate-to-russian',
+    title: 'Translate to Russian',
+    contexts: ['selection']
+  });
+
+  chrome.contextMenus.create({
+    id: 'translate-to-english',
+    title: 'Translate to English',
+    contexts: ['selection']
+  });
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId === 'summarize-selection') {
+    handleSummarizeSelection(info, tab);
+  } else if (info.menuItemId === 'translate-to-russian') {
+    handleTranslateSelection(info, tab, 'ru');
+  } else if (info.menuItemId === 'translate-to-english') {
+    handleTranslateSelection(info, tab, 'en');
+  }
+});
+
+async function handleTranslateSelection(info, tab, targetLang) {
+  const selectedText = info.selectionText;
+  if (!selectedText) return;
+
+  try {
+    // Open the side panel to ensure AI models are initialized
+    await openSidePanel(tab.id);
+
+    // Send translation request to sidepanel
+    const response = await chrome.runtime.sendMessage({
+      type: 'TRANSLATE_TEXT_REQUEST',
+      data: {
+        text: selectedText,
+        targetLang: targetLang
+      }
+    });
+
+    if (response?.ok) {
+      // Forward the successful translation to the content script
+      await ensureContentScript(tab.id);
+      chrome.tabs.sendMessage(tab.id, {
+        type: 'DISPLAY_TRANSLATION_RESULT',
+        data: {
+          translation: response.translation
+        }
+      });
+    } else {
+      throw new Error(response?.error || 'Translation failed in side panel');
+    }
+
+  } catch (error) {
+    logError(error, { context: 'handleTranslateSelection', tabId: tab.id });
+  }
+}
+
+async function handleSummarizeSelection(info, tab) {
+  const selectedText = info.selectionText;
+  if (!selectedText) return;
+
+  try {
+    // Open the side panel
+    await openSidePanel(tab.id);
+
+    // Send the selected text to the side panel
+    chrome.runtime.sendMessage({
+      type: 'SUMMARIZE_TEXT_REQUEST',
+      data: {
+        text: selectedText
+      }
+    }).catch(error => {
+      logger.warn('Side Panel not ready for summarize request', { error: error.message });
+    });
+
+  } catch (error) {
+    logError(error, { context: 'handleSummarizeSelection', tabId: tab.id });
+  }
+}
+
+// ============================================================================
 // SIDE PANEL MANAGEMENT
 // ============================================================================
 
@@ -428,6 +520,42 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
+  if (msg.type === 'QUICK_REPLY_REQUEST') {
+    // Forward request to side panel and return response
+    (async () => {
+        try {
+            await openSidePanel(sender.tab.id);
+            const response = await chrome.runtime.sendMessage({
+                type: 'SIDE_PANEL_QUICK_REPLY_REQUEST',
+                data: msg.data
+            });
+            sendResponse(response);
+        } catch (error) {
+            logError(error, { context: 'QUICK_REPLY_REQUEST' });
+            sendResponse({ ok: false, error: error.message });
+        }
+    })();
+    return true;
+  }
+
+  if (msg.type === 'PROOFREAD_TEXT_REQUEST') {
+    // Forward request to side panel and return response
+    (async () => {
+        try {
+            await openSidePanel(sender.tab.id);
+            const response = await chrome.runtime.sendMessage({
+                type: 'SIDE_PANEL_PROOFREAD_REQUEST',
+                data: msg.data
+            });
+            sendResponse(response);
+        } catch (error) {
+            logError(error, { context: 'PROOFREAD_TEXT_REQUEST' });
+            sendResponse({ ok: false, error: error.message });
+        }
+    })();
+    return true;
+  }
+
   // Get cached analysis only
   if (msg.type === 'GET_CACHED_ANALYSIS') {
     handleGetCachedAnalysis(msg.data.url)
@@ -481,6 +609,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 });
+
+async function getCurrentTabId() {
+    let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    return tab.id;
+}
 
 async function handleGetCachedAnalysis(url) {
   // Only return cached data, no AI analysis

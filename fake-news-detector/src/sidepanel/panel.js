@@ -20,6 +20,7 @@ let currentAnalysis = null;
 let aiSession = null;
 let summarizer = null;
 let languageDetector = null;
+let translator = null;
 
 // ============================================================================
 // UI HELPERS
@@ -287,6 +288,14 @@ async function initializeAI(onProgress) {
       if (detCaps.available !== 'no') {
         languageDetector = await self.translation.languageDetector.create();
       }
+    }
+
+    // Initialize translator
+    if (self.translation?.translator) {
+        const transCaps = await self.translation.translator.capabilities();
+        if (transCaps.available !== 'no') {
+            translator = await self.translation.translator.create();
+        }
     }
 
   } else {
@@ -982,6 +991,42 @@ let messageListener = null;
  * - Suspicious page detected (high suspicion score)
  */
 messageListener = (msg, sender, sendResponse) => {
+  if (msg.type === 'SUMMARIZE_TEXT_REQUEST') {
+    logger.info('Summarize text request received', {
+      textLength: msg.data.text.length
+    });
+    handleSummarizeSelection(msg.data.text);
+    sendResponse({ ok: true });
+    return;
+  }
+
+  if (msg.type === 'TRANSLATE_TEXT_REQUEST') {
+    logger.info('Translate text request received', {
+      textLength: msg.data.text.length,
+      targetLang: msg.data.targetLang
+    });
+    handleTranslateRequest(msg.data.text, msg.data.targetLang)
+      .then(translation => sendResponse({ ok: true, translation }))
+      .catch(error => sendResponse({ ok: false, error: error.message }));
+    return true; // Keep message channel open for async response
+  }
+
+  if (msg.type === 'SIDE_PANEL_PROOFREAD_REQUEST') {
+    logger.info('Side panel proofread text request received');
+    handleProofreadRequest(msg.data.text, msg.data.action)
+        .then(newText => sendResponse({ ok: true, newText }))
+        .catch(error => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
+  if (msg.type === 'SIDE_PANEL_QUICK_REPLY_REQUEST') {
+    logger.info('Side panel quick reply request received', { textLength: msg.data.text.length });
+    handleQuickReplyRequest(msg.data.text)
+      .then(replies => sendResponse({ ok: true, replies }))
+      .catch(error => sendResponse({ ok: false, error: error.message }));
+    return true; // Keep message channel open for async response
+  }
+
   if (msg.type === 'AUTO_ANALYZE_REQUEST') {
     logger.info('Auto-analysis request received', {
       tabId: msg.data.tabId,
@@ -1021,6 +1066,146 @@ logger.debug('Auto-analysis listener registered');
 // ============================================================================
 // CLEANUP
 // ============================================================================
+
+// ============================================================================
+// CONTENT PROOFREADER
+// ============================================================================
+
+async function handleProofreadRequest(text, action) {
+  if (!aiSession) {
+    logger.warn('AI Session not available');
+    throw new Error('AI Session not initialized');
+  }
+
+  let prompt;
+  if (action.toLowerCase() === 'proofread') {
+    prompt = `Proofread the following text for grammar and spelling errors.
+    Return only the corrected text.
+    Text: "${text}"`;
+  } else {
+    prompt = `Generate text based on the following prompt: "${action}"`;
+  }
+
+  try {
+    const newText = await aiSession.prompt(prompt);
+    logger.info('Proofreader request successful');
+    return newText;
+  } catch (error) {
+    logError(error, { context: 'handleProofreadRequest' });
+    throw error;
+  }
+}
+
+// ============================================================================
+// QUICK REPLY
+// ============================================================================
+
+async function handleQuickReplyRequest(text) {
+  if (!aiSession) {
+    logger.warn('AI Session not available');
+    throw new Error('AI Session not initialized');
+  }
+
+  const prompt = `Based on the following email, generate 3 short, distinct reply options.
+  Each reply should be a JSON object with a "reply" key.
+  Return a JSON array of these objects.
+  Email: "${text}"`;
+
+  try {
+    const response = await aiSession.prompt(prompt);
+    const replies = JSON.parse(response);
+    logger.info('Quick replies generated', { count: replies.length });
+    return replies;
+  } catch (error) {
+    logError(error, { context: 'handleQuickReplyRequest' });
+    throw error;
+  }
+}
+
+// ============================================================================
+// TRANSLATION
+// ============================================================================
+
+async function handleTranslateRequest(text, targetLang) {
+  if (!translator) {
+    logger.warn('Translator not available');
+    throw new Error('Translator not initialized');
+  }
+
+  try {
+    const detected = await languageDetector.detect(text);
+    const sourceLang = detected[0]?.detectedLanguage || 'auto';
+
+    const result = await translator.translate(text, sourceLang, targetLang);
+    logger.info('Translation successful', { from: sourceLang, to: targetLang });
+    return result;
+
+  } catch (error) {
+    logError(error, { context: 'handleTranslateRequest' });
+    throw error;
+  }
+}
+
+// ============================================================================
+// SUMMARIZE SELECTION
+// ============================================================================
+
+async function handleSummarizeSelection(text) {
+  try {
+    hideError();
+    showProgress(true);
+    updateProgress(0, 'Initializing AI...');
+    setStatus('Summarizing selection...');
+
+    // Initialize AI if needed
+    if (!aiSession) {
+      await initializeAI((percentage) => {
+        if (percentage < 100) {
+          updateProgress(Math.floor(percentage * 0.15), `Downloading AI model... ${percentage}%`);
+        }
+      });
+      updateProgress(15, 'AI ready');
+    }
+
+    if (text.length < 50) {
+      throw new Error('Text is too short to summarize (minimum 50 characters)');
+    }
+
+    updateProgress(40, 'Generating summary...');
+    let summary = 'Summary unavailable';
+    if (summarizer) {
+      try {
+        summary = await summarizer.summarize(text);
+        logger.debug('Selection summary generated', { length: summary.length });
+      } catch (error) {
+        logger.warn('Selection summarization failed', { error: error.message });
+        throw error;
+      }
+    }
+
+    // Create a partial result object to display
+    const partialResult = {
+      score: 'N/A',
+      verdict: 'Text selection summary',
+      red_flags: [],
+      claims: [],
+      summary: summary,
+      lang: 'N/A',
+      metadata: {}
+    };
+
+    showProgress(false);
+    showResult(partialResult);
+    setStatus('Summary complete');
+
+  } catch (error) {
+    console.error('Summarize selection failed:', error);
+    showProgress(false);
+    showError(error);
+    setStatus('Summarization failed', true);
+  }
+}
+
 
 window.addEventListener('beforeunload', async () => {
   logger.debug('Cleaning up resources');

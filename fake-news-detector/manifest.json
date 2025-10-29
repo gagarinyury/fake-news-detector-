@@ -12,14 +12,18 @@
     "service_worker": "src/background/background.js",
     "type": "module"
   },
-  "permissions": ["activeTab", "storage", "sidePanel", "scripting"],
+  "permissions": ["activeTab", "storage", "sidePanel", "scripting", "contextMenus"],
   "icons": {
     "16": "src/assets/icons/16.png",
     "32": "src/assets/icons/32.png",
     "128": "src/assets/icons/128.png"
   },
   "content_scripts": [{
-    "matches": ["<all_urls>"],
+    "matches": [
+      "<all_urls>",
+      "https://mail.google.com/*",
+      "https://outlook.live.com/*"
+    ],
     "js": [
       "src/shared/logger-content.js",
       "src/content/content.js"
