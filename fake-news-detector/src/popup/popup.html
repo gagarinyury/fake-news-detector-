@@ -2,53 +2,148 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Fake News Detector</title>
+  <title>FC News Detective</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="container">
-    <h1>Fake News Detector</h1>
+    <!-- Header -->
+    <header class="header">
+      <h1>FC News + AI</h1>
+      <div class="subtitle">Privacy-First Assistant</div>
+    </header>
 
-    <div id="status">Ready</div>
+    <!-- Tab Navigation -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="news">
+        <span class="tab-icon">📰</span>
+        <span class="tab-label">News</span>
+      </button>
+      <button class="tab" data-tab="tools">
+        <span class="tab-icon">🛠️</span>
+        <span class="tab-label">AI Tools</span>
+      </button>
+    </nav>
 
-    <div class="buttons">
-      <button id="btn-full-analysis" class="btn-primary">Full Analysis</button>
-      <button id="btn-highlight">Highlight Claims</button>
-      <button id="btn-clear">Clear Highlights</button>
-      <button id="btn-copy">Copy Report</button>
+    <!-- Tab Panels -->
+    <div class="tab-panels">
+
+      <!-- News Check Panel -->
+      <div class="tab-panel active" id="panel-news">
+
+        <!-- Status -->
+        <div id="status" class="status">Ready to analyze</div>
+
+        <!-- Quick Info (shown when cached) -->
+        <div id="quick-info" class="quick-info" style="display: none;">
+          <div class="score-card">
+            <div class="score-badge">
+              <svg class="progress-ring" width="80" height="80">
+                <circle class="progress-ring-circle" stroke="#e8eaed" stroke-width="6" fill="transparent" r="34" cx="40" cy="40"/>
+                <circle id="progress-circle" class="progress-ring-circle" stroke="#0f9d58" stroke-width="6" fill="transparent" r="34" cx="40" cy="40"/>
+              </svg>
+              <div class="score-value" id="score-value">--</div>
+            </div>
+            <div class="score-info">
+              <div class="verdict" id="quick-verdict">No analysis yet</div>
+              <div class="meta" id="quick-meta">Click below to analyze</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Action -->
+        <div class="main-action">
+          <button id="btn-open-panel" class="btn-primary">
+            <span class="btn-icon">🚀</span>
+            <span class="btn-text">Open Full Analysis</span>
+          </button>
+        </div>
+
+        <!-- Quick Actions (shown when cached) -->
+        <div id="quick-actions" class="quick-actions" style="display: none;">
+          <button id="btn-highlight" class="btn-secondary">
+            <span class="btn-icon">🔍</span>
+            <span>Highlight Claims</span>
+          </button>
+          <button id="btn-clear" class="btn-secondary">
+            <span class="btn-icon">✨</span>
+            <span>Clear Highlights</span>
+          </button>
+          <button id="btn-copy" class="btn-secondary">
+            <span class="btn-icon">📋</span>
+            <span>Copy Report</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- AI Tools Panel -->
+      <div class="tab-panel" id="panel-tools">
+
+        <div class="tools-intro">
+          <p>AI-powered tools working locally in your browser</p>
+        </div>
+
+        <div class="tools-list">
+
+          <div class="tool-item">
+            <div class="tool-icon">📄</div>
+            <div class="tool-content">
+              <div class="tool-title">Summarize Selection</div>
+              <div class="tool-desc">Generate concise summary</div>
+            </div>
+            <div class="tool-badge">
+              <span class="status-dot green"></span>
+              <span class="tool-hint">Right-click</span>
+            </div>
+          </div>
+
+          <div class="tool-item">
+            <div class="tool-icon">🌍</div>
+            <div class="tool-content">
+              <div class="tool-title">Local Translator</div>
+              <div class="tool-desc">Translate to RU/EN</div>
+            </div>
+            <div class="tool-badge">
+              <span class="status-dot green"></span>
+              <span class="tool-hint">Right-click</span>
+            </div>
+          </div>
+
+          <div class="tool-item">
+            <div class="tool-icon">✉️</div>
+            <div class="tool-content">
+              <div class="tool-title">Quick Reply Assistant</div>
+              <div class="tool-desc">Email suggestions</div>
+            </div>
+            <div class="tool-badge">
+              <span class="status-dot blue"></span>
+              <span class="tool-hint">Gmail/Outlook</span>
+            </div>
+          </div>
+
+          <div class="tool-item">
+            <div class="tool-icon">✍️</div>
+            <div class="tool-content">
+              <div class="tool-title">Content Proofreader</div>
+              <div class="tool-desc">Fix grammar & generate</div>
+            </div>
+            <div class="tool-badge">
+              <span class="status-dot green"></span>
+              <span class="tool-hint">Any textarea</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="tools-tip">
+          💡 <strong>Tip:</strong> Select text and right-click for quick access
+        </div>
+
+      </div>
+
     </div>
 
-    <div id="result" style="display: none;">
-      <div class="section">
-        <h3>Credibility Score</h3>
-        <div id="score"></div>
-      </div>
-
-      <div class="section">
-        <h3>Verdict</h3>
-        <div id="verdict"></div>
-      </div>
-
-      <div class="section">
-        <h3>Red Flags</h3>
-        <div id="flags"></div>
-      </div>
-
-      <div class="section">
-        <h3>Key Claims</h3>
-        <div id="claims"></div>
-      </div>
-
-      <div class="section">
-        <h3>Summary</h3>
-        <div id="summary"></div>
-      </div>
-
-      <div class="section">
-        <h3>Language</h3>
-        <div id="lang"></div>
-      </div>
-    </div>
   </div>
 
   <script type="module" src="popup.js"></script>

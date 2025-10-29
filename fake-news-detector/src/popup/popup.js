@@ -1,9 +1,7 @@
 import { createLogger } from "../shared/logger.js";
-const logger = createLogger("Popup");
-
-// Popup UI logic
 import { classifyError } from '../shared/errorHandler.js';
 
+const logger = createLogger("Popup");
 logger.debug('Popup loaded');
 
 // ============================================================================
@@ -14,115 +12,47 @@ let currentAnalysis = null;
 let currentTabId = null;
 
 // ============================================================================
+// TAB SWITCHING
+// ============================================================================
+
+function initTabs() {
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.tab-panel');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Remove active from all
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+
+      // Add active to clicked
+      tab.classList.add('active');
+      const targetPanel = document.getElementById(`panel-${tab.dataset.tab}`);
+      if (targetPanel) {
+        targetPanel.classList.add('active');
+      }
+
+      logger.debug('Tab switched', { tab: tab.dataset.tab });
+    });
+  });
+}
+
+// ============================================================================
 // UI HELPERS
 // ============================================================================
 
 function setStatus(text, isError = false) {
   const statusEl = document.getElementById('status');
-  statusEl.textContent = text;
-  statusEl.style.color = isError ? '#db4437' : '#000';
+  if (statusEl) {
+    statusEl.textContent = text;
+    statusEl.style.color = isError ? '#db4437' : '#6e6e73';
+  }
 }
 
 function setErrorStatus(error) {
   const classified = classifyError(error);
   setStatus(classified.userMessage, true);
-  console.error('Error details:', classified);
-}
-
-function showResult(data) {
-  currentAnalysis = data;
-
-  // Show result container
-  document.getElementById('result').style.display = 'block';
-
-  // Score
-  const scoreEl = document.getElementById('score');
-  scoreEl.textContent = data.score;
-  if (data.score >= 75) {
-    scoreEl.style.color = '#0f9d58';
-  } else if (data.score >= 40) {
-    scoreEl.style.color = '#f4b400';
-  } else {
-    scoreEl.style.color = '#db4437';
-  }
-
-  // Verdict
-  document.getElementById('verdict').textContent = data.verdict || 'No verdict';
-
-  // Red flags
-  const flagsEl = document.getElementById('flags');
-  if (data.red_flags && data.red_flags.length > 0) {
-    flagsEl.innerHTML = '<ul>' +
-      data.red_flags.map(flag => `<li>${escapeHtml(flag)}</li>`).join('') +
-      '</ul>';
-  } else {
-    flagsEl.textContent = 'No red flags detected';
-  }
-
-  // Key claims
-  const claimsEl = document.getElementById('claims');
-  if (data.claims && data.claims.length > 0) {
-    claimsEl.innerHTML = '<ul>' +
-      data.claims.map(claim => {
-        // Handle multiple formats
-        let claimText, accuracy, evidence;
-
-        if (typeof claim === 'string') {
-          claimText = claim;
-          accuracy = '';
-          evidence = '';
-        } else if (claim.claim) {
-          // New rich format
-          claimText = claim.claim;
-          accuracy = claim.accuracy || '';
-          evidence = claim.evidence || '';
-        } else if (claim.text) {
-          // Legacy format
-          claimText = claim.text;
-          accuracy = '';
-          evidence = '';
-        } else {
-          claimText = String(claim);
-          accuracy = '';
-          evidence = '';
-        }
-
-        // Build HTML with accuracy badge
-        let html = `<li>${escapeHtml(claimText)}`;
-
-        if (accuracy) {
-          const badgeColor = accuracy === 'Accurate' ? '#0f9d58' :
-                            accuracy === 'Questionable' ? '#f4b400' : '#5f6368';
-          html += ` <span class="accuracy-badge" style="color: ${badgeColor}; font-size: 11px; font-weight: 500;">[${accuracy}]</span>`;
-        }
-
-        if (evidence) {
-          html += `<br><small style="color: #5f6368;">Source: ${escapeHtml(evidence)}</small>`;
-        }
-
-        html += '</li>';
-        return html;
-      }).join('') +
-      '</ul>';
-  } else {
-    claimsEl.textContent = 'No claims detected';
-  }
-
-  // Summary
-  const summaryEl = document.getElementById('summary');
-  if (data.summary) {
-    summaryEl.textContent = data.summary;
-  } else {
-    summaryEl.textContent = 'No summary available';
-  }
-
-  // Language
-  document.getElementById('lang').textContent = data.lang || 'unknown';
-}
-
-function hideResult() {
-  document.getElementById('result').style.display = 'none';
-  currentAnalysis = null;
+  logger.error('Error:', classified);
 }
 
 function escapeHtml(text) {
@@ -132,8 +62,70 @@ function escapeHtml(text) {
 }
 
 // ============================================================================
-// QUICK VIEW - CACHED RESULTS ONLY
+// SMART STATE MANAGEMENT
 // ============================================================================
+
+function showQuickInfo(data) {
+  const quickInfo = document.getElementById('quick-info');
+  const quickActions = document.getElementById('quick-actions');
+  const scoreValue = document.getElementById('score-value');
+  const verdict = document.getElementById('quick-verdict');
+  const meta = document.getElementById('quick-meta');
+  const progressCircle = document.getElementById('progress-circle');
+
+  if (!quickInfo || !scoreValue) return;
+
+  // Show elements
+  quickInfo.style.display = 'block';
+  if (quickActions) quickActions.style.display = 'grid';
+
+  // Set score
+  scoreValue.textContent = data.score || '--';
+
+  // Animate progress ring
+  const circumference = 2 * Math.PI * 34; // r=34
+  const progress = (data.score / 100) * circumference;
+  const offset = circumference - progress;
+
+  if (progressCircle) {
+    progressCircle.style.strokeDashoffset = offset;
+
+    // Change color based on score
+    if (data.score >= 75) {
+      progressCircle.style.stroke = '#30d158'; // Green
+    } else if (data.score >= 40) {
+      progressCircle.style.stroke = '#ff9f0a'; // Orange
+    } else {
+      progressCircle.style.stroke = '#ff3b30'; // Red
+    }
+  }
+
+  // Set verdict
+  if (verdict) {
+    verdict.textContent = data.verdict || 'No verdict';
+  }
+
+  // Set meta
+  if (meta) {
+    const timestamp = data.timestamp ? new Date(data.timestamp) : new Date();
+    const timeStr = timestamp.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    meta.textContent = `Analyzed at ${timeStr}`;
+  }
+
+  // Update status
+  setStatus('✓ Analysis loaded from cache');
+}
+
+function hideQuickInfo() {
+  const quickInfo = document.getElementById('quick-info');
+  const quickActions = document.getElementById('quick-actions');
+
+  if (quickInfo) quickInfo.style.display = 'none';
+  if (quickActions) quickActions.style.display = 'none';
+}
 
 async function loadCachedAnalysis() {
   try {
@@ -141,27 +133,32 @@ async function loadCachedAnalysis() {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     currentTabId = tab.id;
 
-    if (!tab.url.startsWith('http')) {
+    if (!tab.url?.startsWith('http')) {
       setStatus('Cannot analyze this page type', true);
+      hideQuickInfo();
       return;
     }
 
-    // Request cached analysis only
+    // Request cached analysis
     const response = await chrome.runtime.sendMessage({
       type: 'GET_CACHED_ANALYSIS',
       data: { url: tab.url }
     });
 
     if (response?.ok && response.data) {
-      showResult(response.data);
-      setStatus('Cached analysis (click Full Analysis to refresh)');
+      currentAnalysis = response.data;
+      showQuickInfo(response.data);
+      logger.debug('Loaded cached analysis', { score: response.data.score });
     } else {
-      setStatus('No cached data. Click "Full Analysis" to analyze.');
+      hideQuickInfo();
+      setStatus('No cached analysis. Click "Open Full Analysis"');
+      logger.debug('No cache found for URL');
     }
 
   } catch (error) {
-    console.error('Failed to load cache:', error);
-    setStatus('Click "Full Analysis" to analyze');
+    logger.error('Failed to load cache', { error: error.message });
+    hideQuickInfo();
+    setStatus('Click "Open Full Analysis" to start');
   }
 }
 
@@ -169,107 +166,117 @@ async function loadCachedAnalysis() {
 // BUTTON HANDLERS
 // ============================================================================
 
-document.getElementById('btn-full-analysis').addEventListener('click', async () => {
-  logger.debug('Full Analysis clicked');
+document.getElementById('btn-open-panel').addEventListener('click', async () => {
+  logger.debug('Open panel button clicked');
 
   try {
-    // Get current tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     if (!tab || !tab.url?.startsWith('http')) {
-      setStatus('Cannot analyze this page type', true);
+      setStatus('Cannot open panel for this page', true);
       return;
     }
 
-    // Open Side Panel
+    setStatus('Opening AI Assistant...');
+
     const response = await chrome.runtime.sendMessage({
       type: 'OPEN_SIDE_PANEL',
       data: { tabId: tab.id }
     });
 
     if (response?.ok) {
-      setStatus('Side Panel opened');
-      // Close popup after 500ms
+      setStatus('✓ Panel opened');
       setTimeout(() => window.close(), 500);
     } else {
-      throw new Error(response?.error || 'Failed to open Side Panel');
+      throw new Error(response?.error || 'Failed to open panel');
     }
 
   } catch (error) {
-    console.error('Failed to open Side Panel:', error);
+    logger.error('Failed to open panel', { error: error.message });
     setErrorStatus(error);
   }
 });
 
-document.getElementById('btn-highlight').addEventListener('click', async () => {
+document.getElementById('btn-highlight')?.addEventListener('click', async () => {
   logger.debug('Highlight button clicked');
 
   if (!currentAnalysis || !currentTabId) {
-    logger.warn('No analysis or tab ID');
     setStatus('No analysis available', true);
     return;
   }
 
-  logger.debug('Current analysis', currentAnalysis);
-  logger.debug('Tab ID', { currentTabId });
-
   if (!currentAnalysis.claims || currentAnalysis.claims.length === 0) {
-    logger.warn('No claims in analysis');
     setStatus('No claims to highlight', true);
     return;
   }
 
-  logger.debug('Claims to highlight', { count: currentAnalysis.claims.length });
-
   try {
+    setStatus('Highlighting claims...');
+
     // Create risk map based on accuracy
     const riskMap = {};
-    currentAnalysis.claims.forEach((claim, i) => {
-      logger.debug(`Claim ${i + 1}:`, claim);
-
-      // Use snippet for highlighting (if available), otherwise fallback
+    currentAnalysis.claims.forEach((claim) => {
       const snippetText = claim.snippet || (typeof claim === 'string' ? claim : claim.text);
 
       if (snippetText) {
-        // Map accuracy to risk level
         const accuracy = claim.accuracy || 'Unverified';
         const risk = accuracy === 'Accurate' ? 'low' :
                      accuracy === 'Questionable' ? 'high' : 'medium';
         riskMap[snippetText] = risk;
-        logger.debug(`Claim snippet: "${snippetText}" → Risk: ${risk}`);
-      } else {
-        logger.debug(`No snippet found for claim ${i + 1}`);
       }
     });
 
-    logger.debug('Risk map', riskMap);
-
-    logger.debug('Sending HIGHLIGHT_CLAIMS');
     const response = await chrome.runtime.sendMessage({
       type: 'HIGHLIGHT_CLAIMS',
       data: {
         tabId: currentTabId,
         claims: currentAnalysis.claims,
-        riskMap
+        riskMap: riskMap
       }
     });
 
-    logger.debug('Response from background', response);
-
-    if (response.ok) {
-      logger.info('Claims highlighted', { count: response.count });
-      setStatus(`Highlighted ${response.count || 0} claims`);
+    if (response?.ok) {
+      setStatus(`✓ Highlighted ${response.count} claims`);
+      logger.debug('Claims highlighted', { count: response.count });
     } else {
-      throw new Error(response.error || 'Highlight failed');
+      throw new Error(response?.error || 'Highlighting failed');
     }
 
   } catch (error) {
-    console.error('✗ Highlight failed:', error);
+    logger.error('Failed to highlight claims', { error: error.message });
     setErrorStatus(error);
   }
 });
 
-document.getElementById('btn-copy').addEventListener('click', async () => {
+document.getElementById('btn-clear')?.addEventListener('click', async () => {
+  logger.debug('Clear button clicked');
+
+  if (!currentTabId) {
+    setStatus('No active tab', true);
+    return;
+  }
+
+  try {
+    setStatus('Clearing highlights...');
+
+    const response = await chrome.runtime.sendMessage({
+      type: 'CLEAR_HIGHLIGHTS',
+      data: { tabId: currentTabId }
+    });
+
+    if (response?.ok) {
+      setStatus('✓ Highlights cleared');
+    } else {
+      throw new Error(response?.error || 'Clear failed');
+    }
+
+  } catch (error) {
+    logger.error('Failed to clear highlights', { error: error.message });
+    setErrorStatus(error);
+  }
+});
+
+document.getElementById('btn-copy')?.addEventListener('click', async () => {
   logger.debug('Copy button clicked');
 
   if (!currentAnalysis) {
@@ -280,43 +287,14 @@ document.getElementById('btn-copy').addEventListener('click', async () => {
   try {
     const report = JSON.stringify(currentAnalysis, null, 2);
     await navigator.clipboard.writeText(report);
-    setStatus('Report copied to clipboard');
 
-    // Reset status after 2 seconds
+    setStatus('✓ Report copied to clipboard');
     setTimeout(() => {
-      if (currentAnalysis) {
-        setStatus('Analysis ready');
-      }
+      setStatus('✓ Analysis loaded from cache');
     }, 2000);
 
   } catch (error) {
-    console.error('Copy failed:', error);
-    setStatus('Failed to copy', true);
-  }
-});
-
-document.getElementById('btn-clear').addEventListener('click', async () => {
-  logger.debug('Clear button clicked');
-
-  if (!currentTabId) {
-    setStatus('No active tab', true);
-    return;
-  }
-
-  try {
-    const response = await chrome.runtime.sendMessage({
-      type: 'CLEAR_HIGHLIGHTS',
-      data: { tabId: currentTabId }
-    });
-
-    if (response.ok) {
-      setStatus('Highlights cleared');
-    } else {
-      throw new Error(response.error || 'Clear failed');
-    }
-
-  } catch (error) {
-    console.error('Clear failed:', error);
+    logger.error('Failed to copy report', { error: error.message });
     setErrorStatus(error);
   }
 });
@@ -327,21 +305,18 @@ document.getElementById('btn-clear').addEventListener('click', async () => {
 
 (async () => {
   try {
-    setStatus('Loading...');
+    logger.debug('Initializing popup');
 
-    // Check if we're on a valid page
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    // Initialize tabs
+    initTabs();
 
-    if (!tab.url.startsWith('http')) {
-      setStatus('Cannot analyze this page type', true);
-      return;
-    }
-
-    // Load cached analysis only
+    // Load cached analysis
     await loadCachedAnalysis();
 
+    logger.debug('Popup initialized successfully');
+
   } catch (error) {
-    console.error('Initialization failed:', error);
-    setStatus('Click "Full Analysis" to analyze');
+    logger.error('Failed to initialize popup', { error: error.message });
+    setStatus('Initialization error', true);
   }
 })();
