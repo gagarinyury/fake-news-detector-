@@ -160,9 +160,10 @@ async function ensureContentScript(tabId) {
     // Content script not loaded, inject it
     logger.debug('Content script not loaded, injecting...');
     try {
+      // Inject logger first, then content script (same order as manifest)
       await chrome.scripting.executeScript({
         target: { tabId },
-        files: ['src/content/content.js']
+        files: ['src/shared/logger-content.js', 'src/content/content.js']
       });
       await chrome.scripting.insertCSS({
         target: { tabId },
@@ -170,7 +171,7 @@ async function ensureContentScript(tabId) {
       });
       logger.debug('Content script injected successfully');
       // Wait a bit for script to initialize
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
       return true;
     } catch (injectError) {
       console.error('Failed to inject content script:', injectError);

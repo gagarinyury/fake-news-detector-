@@ -225,7 +225,7 @@ document.getElementById('btn-highlight').addEventListener('click', async () => {
     // Create risk map based on accuracy
     const riskMap = {};
     currentAnalysis.claims.forEach((claim, i) => {
-      // Claim details in debug mode + 1}:`, claim);
+      logger.debug(`Claim ${i + 1}:`, claim);
 
       // Use snippet for highlighting (if available), otherwise fallback
       const snippetText = claim.snippet || (typeof claim === 'string' ? claim : claim.text);
@@ -236,13 +236,13 @@ document.getElementById('btn-highlight').addEventListener('click', async () => {
         const risk = accuracy === 'Accurate' ? 'low' :
                      accuracy === 'Questionable' ? 'high' : 'medium';
         riskMap[snippetText] = risk;
-        // Claim snippet Snippet: "${snippetText}" → Risk: ${risk}`);
+        logger.debug(`Claim snippet: "${snippetText}" → Risk: ${risk}`);
       } else {
-        // Claim snippet No snippet found for claim ${i + 1}`);
+        logger.debug(`No snippet found for claim ${i + 1}`);
       }
     });
 
-    // Risk map in context;
+    logger.debug('Risk map', riskMap);
 
     logger.debug('Sending HIGHLIGHT_CLAIMS');
     const response = await chrome.runtime.sendMessage({
@@ -257,7 +257,7 @@ document.getElementById('btn-highlight').addEventListener('click', async () => {
     logger.debug('Response from background', response);
 
     if (response.ok) {
-      logger.info('Claims highlighted', { count: response.count } || 0} claims`);
+      logger.info('Claims highlighted', { count: response.count });
       setStatus(`Highlighted ${response.count || 0} claims`);
     } else {
       throw new Error(response.error || 'Highlight failed');

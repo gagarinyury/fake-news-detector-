@@ -1,7 +1,7 @@
-import { createLogger } from "../shared/logger.js";
-const logger = createLogger("Content");
-
 // Content Script - DOM interaction
+// Using global FND namespace from logger-content.js
+const logger = window.FND.createLogger("Content");
+
 logger.debug('Content script loaded');
 
 // ============================================================================
