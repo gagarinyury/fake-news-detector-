@@ -179,17 +179,11 @@ document.getElementById('btn-open-panel').addEventListener('click', async () => 
 
     setStatus('Opening AI Assistant...');
 
-    const response = await chrome.runtime.sendMessage({
-      type: 'OPEN_SIDE_PANEL',
-      data: { tabId: tab.id }
-    });
+    // Open side panel directly (we have user gesture from button click)
+    await chrome.sidePanel.open({ tabId: tab.id });
 
-    if (response?.ok) {
-      setStatus('✓ Panel opened');
-      setTimeout(() => window.close(), 500);
-    } else {
-      throw new Error(response?.error || 'Failed to open panel');
-    }
+    setStatus('✓ Panel opened');
+    setTimeout(() => window.close(), 500);
 
   } catch (error) {
     logger.error('Failed to open panel', { error: error.message });

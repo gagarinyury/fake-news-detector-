@@ -18,6 +18,10 @@ schedulePeriodicCleanup();
 // ============================================================================
 
 chrome.runtime.onInstalled.addListener(() => {
+  // Enable side panel to open on icon click (direct workflow)
+  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
+    .catch(error => logger.warn('Could not set panel behavior', { error: error.message }));
+
   chrome.contextMenus.create({
     id: 'summarize-selection',
     title: 'Summarize selection',
@@ -52,8 +56,12 @@ async function handleTranslateSelection(info, tab, targetLang) {
   if (!selectedText) return;
 
   try {
-    // Open the side panel to ensure AI models are initialized
-    await openSidePanel(tab.id);
+    // Try to open side panel (user gesture from context menu click)
+    try {
+      await chrome.sidePanel.open({ tabId: tab.id });
+    } catch (err) {
+      logger.warn('Could not open side panel from context menu', { error: err.message });
+    }
 
     // Send translation request to sidepanel
     const response = await chrome.runtime.sendMessage({
@@ -87,8 +95,12 @@ async function handleSummarizeSelection(info, tab) {
   if (!selectedText) return;
 
   try {
-    // Open the side panel
-    await openSidePanel(tab.id);
+    // Try to open side panel (user gesture from context menu click)
+    try {
+      await chrome.sidePanel.open({ tabId: tab.id });
+    } catch (err) {
+      logger.warn('Could not open side panel from context menu', { error: err.message });
+    }
 
     // Send the selected text to the side panel
     chrome.runtime.sendMessage({
@@ -453,10 +465,10 @@ async function triggerBackgroundAnalysis(tabId, url, title, domain, suspicionSco
     // Show "analyzing" badge
     updateBadge(tabId, '...', BADGE_MODES.AI_ANALYZING, { domain });
 
-    // Open Side Panel silently (user can switch to it if they want)
-    await chrome.sidePanel.open({ tabId });
+    // DON'T auto-open side panel - no user gesture!
+    // User can open it manually via icon click (configured in onInstalled)
 
-    // Send message to Side Panel to start analysis with context
+    // Send message to Side Panel if it's already open
     chrome.runtime.sendMessage({
       type: 'AUTO_ANALYZE_REQUEST',
       data: {
@@ -467,14 +479,17 @@ async function triggerBackgroundAnalysis(tabId, url, title, domain, suspicionSco
         isSuspicious: suspicionScore >= 50
       }
     }).catch(error => {
-      // Side Panel might not be ready yet, that's OK
-      logger.warn('Side Panel not ready for auto-analysis', { error: error.message });
+      // Side Panel not open - that's OK for auto-analysis
+      logger.debug('Side Panel not open for auto-analysis', { error: error.message });
+      // Revert badge to show user should click to analyze
+      updateBadge(tabId, '?', BADGE_MODES.INSTANT, { domain });
+      activeAnalysisByTab.delete(tabId);
     });
 
     if (suspicionScore >= 50) {
-      logger.info('[PRIORITY] Suspicious page analysis triggered', { suspicionScore });
+      logger.info('[PRIORITY] Suspicious page detected - click icon to analyze', { suspicionScore });
     } else {
-      logger.debug('Auto-analysis triggered', { tabId });
+      logger.debug('Auto-analysis queued', { tabId });
     }
 
     return { started: true };
@@ -521,10 +536,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
 
   if (msg.type === 'QUICK_REPLY_REQUEST') {
-    // Forward request to side panel and return response
+    // Forward request to side panel (should already be open)
     (async () => {
         try {
-            await openSidePanel(sender.tab.id);
+            // Don't auto-open, just forward the message
             const response = await chrome.runtime.sendMessage({
                 type: 'SIDE_PANEL_QUICK_REPLY_REQUEST',
                 data: msg.data
@@ -532,17 +547,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             sendResponse(response);
         } catch (error) {
             logError(error, { context: 'QUICK_REPLY_REQUEST' });
-            sendResponse({ ok: false, error: error.message });
+            sendResponse({ ok: false, error: 'Please open side panel first (click extension icon)' });
         }
     })();
     return true;
   }
 
   if (msg.type === 'PROOFREAD_TEXT_REQUEST') {
-    // Forward request to side panel and return response
+    // Forward request to side panel (should already be open)
     (async () => {
         try {
-            await openSidePanel(sender.tab.id);
+            // Don't auto-open, just forward the message
             const response = await chrome.runtime.sendMessage({
                 type: 'SIDE_PANEL_PROOFREAD_REQUEST',
                 data: msg.data
@@ -550,7 +565,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             sendResponse(response);
         } catch (error) {
             logError(error, { context: 'PROOFREAD_TEXT_REQUEST' });
-            sendResponse({ ok: false, error: error.message });
+            sendResponse({ ok: false, error: 'Please open side panel first (click extension icon)' });
         }
     })();
     return true;
@@ -569,9 +584,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   // Request page text (from Side Panel)
   if (msg.type === 'REQUEST_PAGE_TEXT') {
+    logger.info('🔍 Background received REQUEST_PAGE_TEXT', { tabId: msg.data.tabId });
     handleRequestPageText(msg.data.tabId)
-      .then(data => sendResponse({ ok: true, ...data }))
+      .then(data => {
+        logger.info('🔍 Background sending response', { textLength: data.text?.length });
+        sendResponse({ ok: true, ...data });
+      })
       .catch(error => {
+        logger.error('❌ Background error', { error: error.message });
         logError(error, { context: 'REQUEST_PAGE_TEXT', tabId: msg.data.tabId });
         sendResponse({ ok: false, error: error.message });
       });
@@ -606,6 +626,30 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         logError(error, { context: 'CLEAR_HIGHLIGHTS', tabId: msg.data.tabId });
         sendResponse({ ok: false, error: error.message });
       });
+    return true;
+  }
+
+  // GET_SELECTION relay (from assistant panel to content script)
+  if (msg.type === 'GET_SELECTION') {
+    (async () => {
+      try {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab) {
+          sendResponse({ ok: false, error: 'No active tab' });
+          return;
+        }
+
+        // Ensure content script is loaded
+        await ensureContentScript(tab.id);
+
+        // Forward to content script
+        const response = await chrome.tabs.sendMessage(tab.id, { type: 'GET_SELECTION' });
+        sendResponse(response);
+      } catch (error) {
+        logError(error, { context: 'GET_SELECTION relay' });
+        sendResponse({ ok: false, error: error.message });
+      }
+    })();
     return true;
   }
 });
@@ -734,25 +778,25 @@ async function handleClearHighlights(tabId) {
 // AI ASSISTANT PANEL HANDLERS
 // ============================================================================
 
-// Handle icon click - open assistant panel instead of popup
-chrome.action.onClicked.addListener(async (tab) => {
-  try {
-    logger.debug('Extension icon clicked', { tabId: tab.id });
-    
-    // Send message to content script to toggle panel
-    await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_ASSISTANT_PANEL' });
-    
-    logger.info('Assistant panel toggled');
-  } catch (error) {
-    logger.error('Failed to toggle assistant panel', { error: error.message });
-    
-    // Fallback: open side panel
-    try {
-      await chrome.sidePanel.open({ tabId: tab.id });
-    } catch (fallbackError) {
-      logger.error('Fallback to side panel failed', { error: fallbackError.message });
-    }
-  }
-});
+// DISABLED: Using popup instead for UI selection
+// chrome.action.onClicked.addListener(async (tab) => {
+//   try {
+//     logger.debug('Extension icon clicked', { tabId: tab.id });
+//
+//     // Send message to content script to toggle panel
+//     await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_ASSISTANT_PANEL' });
+//
+//     logger.info('Assistant panel toggled');
+//   } catch (error) {
+//     logger.error('Failed to toggle assistant panel', { error: error.message });
+//
+//     // Fallback: open side panel
+//     try {
+//       await chrome.sidePanel.open({ tabId: tab.id });
+//     } catch (fallbackError) {
+//       logger.error('Fallback to side panel failed', { error: fallbackError.message });
+//     }
+//   }
+// });
 
-logger.debug('AI Assistant panel handlers registered');
+logger.debug('Popup enabled for UI selection');

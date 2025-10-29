@@ -20,7 +20,6 @@ let currentAnalysis = null;
 let aiSession = null;
 let summarizer = null;
 let languageDetector = null;
-let translator = null;
 
 // ============================================================================
 // UI HELPERS
@@ -193,17 +192,6 @@ function showResult(data) {
       suspicionEl.style.fontWeight = '600';
     }
   }
-
-  // Show social post generation if score is high
-  const socialPostSection = document.getElementById('social-post-generation');
-  const articleChatSection = document.getElementById('article-chat-section');
-  if (data.score >= 75) {
-    socialPostSection.style.display = 'block';
-    articleChatSection.style.display = 'block';
-  } else {
-    socialPostSection.style.display = 'none';
-    articleChatSection.style.display = 'none';
-  }
 }
 
 function hideResult() {
@@ -290,14 +278,6 @@ async function initializeAI(onProgress) {
       }
     }
 
-    // Initialize translator
-    if (self.translation?.translator) {
-        const transCaps = await self.translation.translator.capabilities();
-        if (transCaps.available !== 'no') {
-            translator = await self.translation.translator.create();
-        }
-    }
-
   } else {
     // Legacy API with initialPrompts (spec-compliant)
     aiSession = await self.LanguageModel.create({
@@ -338,21 +318,45 @@ async function initializeAI(onProgress) {
 
 async function getPageText() {
   logger.debug('Requesting page text');
+  logger.info('🔍 Step 1: Querying tabs');
 
   // Get active tab
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  logger.info('🔍 Step 2: Tab query result', {
+    found: !!tab,
+    url: tab?.url,
+    id: tab?.id,
+    active: tab?.active
+  });
 
   if (!tab || !tab.url?.startsWith('http')) {
+    logger.error('❌ No valid tab found');
     throw new Error('Cannot analyze this page type');
   }
 
+  logger.info('🔍 Step 3: Sending REQUEST_PAGE_TEXT to background', { tabId: tab.id });
+
   // Request text via background
-  const response = await chrome.runtime.sendMessage({
-    type: 'REQUEST_PAGE_TEXT',
-    data: { tabId: tab.id }
+  let response;
+  try {
+    response = await chrome.runtime.sendMessage({
+      type: 'REQUEST_PAGE_TEXT',
+      data: { tabId: tab.id }
+    });
+  } catch (error) {
+    logger.error('❌ Failed to send message to background', { error: error.message });
+    throw new Error('Background service worker not responding');
+  }
+
+  logger.info('🔍 Step 4: Got response from background', {
+    ok: response?.ok,
+    hasText: !!response?.text,
+    textLength: response?.text?.length,
+    error: response?.error
   });
 
   if (!response?.ok) {
+    logger.error('❌ Background returned error', { error: response?.error });
     throw new Error(response?.error || 'Failed to get page text');
   }
 
@@ -560,7 +564,6 @@ async function performAnalysis() {
     // Get page text
     updateProgress(18, 'Getting page content...');
     const pageData = await getPageText();
-    articleTextForChat = pageData.text; // Save for chat
 
     if (!pageData.text || pageData.text.length < 200) {
       throw new Error('Not enough text for analysis (minimum 200 characters)');
@@ -594,54 +597,6 @@ document.getElementById('btn-analyze').addEventListener('click', () => {
   performAnalysis();
 });
 
-async function generateSocialPost(platform) {
-  if (!currentAnalysis || !aiSession) {
-    setStatus('Analyze an article first', true);
-    return;
-  }
-
-  const socialPostOutput = document.getElementById('social-post-output');
-  const socialPostText = document.getElementById('social-post-text');
-  socialPostOutput.style.display = 'block';
-  socialPostText.value = 'Generating...';
-
-  let prompt = '';
-  const summary = currentAnalysis.summary || 'No summary available';
-
-  switch (platform) {
-    case 'twitter':
-      prompt = `Based on the following news summary, create a tweet (under 280 characters). Make it engaging and add 2-3 relevant hashtags. Summary: "${summary}"`;
-      break;
-    case 'instagram':
-      prompt = `Write an engaging Instagram post based on this news summary. Suggest a visual idea (photo or video) and add 5 popular hashtags. Summary: "${summary}"`;
-      break;
-    case 'reddit':
-      prompt = `Create a Reddit post title and body based on this news summary. The tone should be neutral and informative. Suggest a relevant subreddit. Summary: "${summary}"`;
-      break;
-  }
-
-  try {
-    const post = await aiSession.prompt(prompt);
-    socialPostText.value = post;
-  } catch (error) {
-    socialPostText.value = 'Failed to generate post.';
-    logError(error, { context: 'Social Post Generation' });
-  }
-}
-
-document.getElementById('btn-gen-twitter').addEventListener('click', () => generateSocialPost('twitter'));
-document.getElementById('btn-gen-instagram').addEventListener('click', () => generateSocialPost('instagram'));
-document.getElementById('btn-gen-reddit').addEventListener('click', () => generateSocialPost('reddit'));
-
-document.getElementById('btn-copy-social-post').addEventListener('click', async () => {
-  const textToCopy = document.getElementById('social-post-text').value;
-  if (textToCopy) {
-    await navigator.clipboard.writeText(textToCopy);
-    setStatus('Social post copied to clipboard');
-    setTimeout(() => setStatus('Analysis complete'), 2000);
-  }
-});
-
 document.getElementById('btn-copy').addEventListener('click', async () => {
   logger.debug('Copy button clicked');
 
@@ -665,49 +620,6 @@ document.getElementById('btn-copy').addEventListener('click', async () => {
     console.error('Copy failed:', error);
     setStatus('Failed to copy', true);
   }
-});
-
-// ============================================================================
-// CHAT HANDLERS
-// ============================================================================
-
-let articleTextForChat = '';
-
-async function handleChatMessage() {
-    const chatInput = document.getElementById('chat-input');
-    const userMessage = chatInput.value.trim();
-    if (!userMessage || !aiSession) {
-        return;
-    }
-
-    addMessageToChat(userMessage, 'user');
-    chatInput.value = '';
-
-    const prompt = `Based on the article provided, please answer the following question: "${userMessage}". Article: "${articleTextForChat.slice(0, 4000)}"`;
-
-    try {
-        const aiResponse = await aiSession.prompt(prompt);
-        addMessageToChat(aiResponse, 'ai');
-    } catch (error) {
-        addMessageToChat('Sorry, I encountered an error.', 'ai');
-        logError(error, { context: 'Article Chat' });
-    }
-}
-
-function addMessageToChat(message, sender) {
-    const chatMessages = document.getElementById('chat-messages');
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('chat-message', sender === 'user' ? 'user-message' : 'ai-message');
-    messageElement.textContent = message;
-    chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-document.getElementById('btn-chat-send').addEventListener('click', handleChatMessage);
-document.getElementById('chat-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        handleChatMessage();
-    }
 });
 
 // ============================================================================
@@ -991,42 +903,6 @@ let messageListener = null;
  * - Suspicious page detected (high suspicion score)
  */
 messageListener = (msg, sender, sendResponse) => {
-  if (msg.type === 'SUMMARIZE_TEXT_REQUEST') {
-    logger.info('Summarize text request received', {
-      textLength: msg.data.text.length
-    });
-    handleSummarizeSelection(msg.data.text);
-    sendResponse({ ok: true });
-    return;
-  }
-
-  if (msg.type === 'TRANSLATE_TEXT_REQUEST') {
-    logger.info('Translate text request received', {
-      textLength: msg.data.text.length,
-      targetLang: msg.data.targetLang
-    });
-    handleTranslateRequest(msg.data.text, msg.data.targetLang)
-      .then(translation => sendResponse({ ok: true, translation }))
-      .catch(error => sendResponse({ ok: false, error: error.message }));
-    return true; // Keep message channel open for async response
-  }
-
-  if (msg.type === 'SIDE_PANEL_PROOFREAD_REQUEST') {
-    logger.info('Side panel proofread text request received');
-    handleProofreadRequest(msg.data.text, msg.data.action)
-        .then(newText => sendResponse({ ok: true, newText }))
-        .catch(error => sendResponse({ ok: false, error: error.message }));
-    return true;
-  }
-
-  if (msg.type === 'SIDE_PANEL_QUICK_REPLY_REQUEST') {
-    logger.info('Side panel quick reply request received', { textLength: msg.data.text.length });
-    handleQuickReplyRequest(msg.data.text)
-      .then(replies => sendResponse({ ok: true, replies }))
-      .catch(error => sendResponse({ ok: false, error: error.message }));
-    return true; // Keep message channel open for async response
-  }
-
   if (msg.type === 'AUTO_ANALYZE_REQUEST') {
     logger.info('Auto-analysis request received', {
       tabId: msg.data.tabId,
@@ -1066,146 +942,6 @@ logger.debug('Auto-analysis listener registered');
 // ============================================================================
 // CLEANUP
 // ============================================================================
-
-// ============================================================================
-// CONTENT PROOFREADER
-// ============================================================================
-
-async function handleProofreadRequest(text, action) {
-  if (!aiSession) {
-    logger.warn('AI Session not available');
-    throw new Error('AI Session not initialized');
-  }
-
-  let prompt;
-  if (action.toLowerCase() === 'proofread') {
-    prompt = `Proofread the following text for grammar and spelling errors.
-    Return only the corrected text.
-    Text: "${text}"`;
-  } else {
-    prompt = `Generate text based on the following prompt: "${action}"`;
-  }
-
-  try {
-    const newText = await aiSession.prompt(prompt);
-    logger.info('Proofreader request successful');
-    return newText;
-  } catch (error) {
-    logError(error, { context: 'handleProofreadRequest' });
-    throw error;
-  }
-}
-
-// ============================================================================
-// QUICK REPLY
-// ============================================================================
-
-async function handleQuickReplyRequest(text) {
-  if (!aiSession) {
-    logger.warn('AI Session not available');
-    throw new Error('AI Session not initialized');
-  }
-
-  const prompt = `Based on the following email, generate 3 short, distinct reply options.
-  Each reply should be a JSON object with a "reply" key.
-  Return a JSON array of these objects.
-  Email: "${text}"`;
-
-  try {
-    const response = await aiSession.prompt(prompt);
-    const replies = JSON.parse(response);
-    logger.info('Quick replies generated', { count: replies.length });
-    return replies;
-  } catch (error) {
-    logError(error, { context: 'handleQuickReplyRequest' });
-    throw error;
-  }
-}
-
-// ============================================================================
-// TRANSLATION
-// ============================================================================
-
-async function handleTranslateRequest(text, targetLang) {
-  if (!translator) {
-    logger.warn('Translator not available');
-    throw new Error('Translator not initialized');
-  }
-
-  try {
-    const detected = await languageDetector.detect(text);
-    const sourceLang = detected[0]?.detectedLanguage || 'auto';
-
-    const result = await translator.translate(text, sourceLang, targetLang);
-    logger.info('Translation successful', { from: sourceLang, to: targetLang });
-    return result;
-
-  } catch (error) {
-    logError(error, { context: 'handleTranslateRequest' });
-    throw error;
-  }
-}
-
-// ============================================================================
-// SUMMARIZE SELECTION
-// ============================================================================
-
-async function handleSummarizeSelection(text) {
-  try {
-    hideError();
-    showProgress(true);
-    updateProgress(0, 'Initializing AI...');
-    setStatus('Summarizing selection...');
-
-    // Initialize AI if needed
-    if (!aiSession) {
-      await initializeAI((percentage) => {
-        if (percentage < 100) {
-          updateProgress(Math.floor(percentage * 0.15), `Downloading AI model... ${percentage}%`);
-        }
-      });
-      updateProgress(15, 'AI ready');
-    }
-
-    if (text.length < 50) {
-      throw new Error('Text is too short to summarize (minimum 50 characters)');
-    }
-
-    updateProgress(40, 'Generating summary...');
-    let summary = 'Summary unavailable';
-    if (summarizer) {
-      try {
-        summary = await summarizer.summarize(text);
-        logger.debug('Selection summary generated', { length: summary.length });
-      } catch (error) {
-        logger.warn('Selection summarization failed', { error: error.message });
-        throw error;
-      }
-    }
-
-    // Create a partial result object to display
-    const partialResult = {
-      score: 'N/A',
-      verdict: 'Text selection summary',
-      red_flags: [],
-      claims: [],
-      summary: summary,
-      lang: 'N/A',
-      metadata: {}
-    };
-
-    showProgress(false);
-    showResult(partialResult);
-    setStatus('Summary complete');
-
-  } catch (error) {
-    console.error('Summarize selection failed:', error);
-    showProgress(false);
-    showError(error);
-    setStatus('Summarization failed', true);
-  }
-}
-
 
 window.addEventListener('beforeunload', async () => {
   logger.debug('Cleaning up resources');

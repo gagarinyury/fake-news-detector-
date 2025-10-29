@@ -1,0 +1,58 @@
+[29.10.2025, 12:44:49] [INFO] [SidePanel] Logs cleared
+
+[29.10.2025, 12:45:01] [DEBUG] [Popup] Initializing popup
+
+[29.10.2025, 12:45:03] [DEBUG] [Popup] Tab switched
+  Data: {
+  "tab": "news"
+}
+
+[29.10.2025, 12:45:03] [DEBUG] [Popup] Open panel button clicked
+
+[29.10.2025, 12:45:03] [DEBUG] [SidePanel] Initializing Side Panel
+
+[29.10.2025, 12:45:03] [INFO] [SidePanel] Prompts loaded for editor
+
+[29.10.2025, 12:45:05] [INFO] [SidePanel] Using legacy AI API
+
+[29.10.2025, 12:45:05] [INFO] [SidePanel] Loaded prompts
+  Data: {
+  "hasCustom": true
+}
+
+[29.10.2025, 12:45:05] [INFO] [SidePanel] AI session created with legacy API (initialPrompts)
+
+[29.10.2025, 12:45:05] [INFO] [SidePanel] AI session initialized
+
+[29.10.2025, 12:45:05] [INFO] [SidePanel] 🔍 Step 3: Sending REQUEST_PAGE_TEXT to background
+  Data: {
+  "tabId": 343986993
+}
+
+[29.10.2025, 12:45:51] [INFO] [Background] Background service worker loaded
+
+[29.10.2025, 12:45:57] [INFO] [Background] Background service worker loaded
+
+[29.10.2025, 12:46:02] [DEBUG] [Popup] Initializing popup
+
+[29.10.2025, 12:46:04] [DEBUG] [Popup] Open panel button clicked
+
+[29.10.2025, 12:46:04] [DEBUG] [SidePanel] Initializing Side Panel
+
+[29.10.2025, 12:46:04] [INFO] [SidePanel] Prompts loaded for editor
+
+[29.10.2025, 12:46:08] [INFO] [SidePanel] Using legacy AI API
+
+[29.10.2025, 12:46:08] [INFO] [SidePanel] Loaded prompts
+  Data: {
+  "hasCustom": true
+}
+
+[29.10.2025, 12:46:08] [INFO] [SidePanel] AI session created with legacy API (initialPrompts)
+
+[29.10.2025, 12:46:08] [INFO] [SidePanel] AI session initialized
+
+[29.10.2025, 12:46:08] [INFO] [SidePanel] 🔍 Step 3: Sending REQUEST_PAGE_TEXT to background
+  Data: {
+  "tabId": 343986993
+}

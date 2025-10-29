@@ -310,14 +310,6 @@ document.getElementById('btn-close').addEventListener('click', () => {
   // Detect and update context
   updateContextUI();
 
-  // Initialize AI in background (with error handling)
-  try {
-    chrome.runtime.sendMessage({ type: 'INIT_AI' }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.warn('AI init message failed (non-critical):', chrome.runtime.lastError.message);
-      }
-    });
-  } catch (error) {
-    console.warn('Failed to send INIT_AI message:', error);
-  }
+  // Note: AI is initialized on-demand when features are used
+  // No need for explicit INIT_AI message
 })();

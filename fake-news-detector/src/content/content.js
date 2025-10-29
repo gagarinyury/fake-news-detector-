@@ -525,6 +525,31 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     }
     return true;
   }
+
+  // Assistant panel controls
+  if (msg.type === 'OPEN_ASSISTANT_PANEL') {
+    createAssistantPanel();
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (msg.type === 'CLOSE_ASSISTANT_PANEL') {
+    removeAssistantPanel();
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (msg.type === 'TOGGLE_ASSISTANT_PANEL') {
+    toggleAssistantPanel();
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (msg.type === 'GET_SELECTION') {
+    const selection = getSelectedText();
+    sendResponse({ ok: true, text: selection });
+    return true;
+  }
 });
 
 logger.debug('Content script ready');
@@ -621,65 +646,10 @@ function getSelectedText() {
 }
 
 // ============================================================================
-// MESSAGE HANDLERS - ADD ASSISTANT PANEL SUPPORT
+// MESSAGE HANDLERS - CONSOLIDATED
 // ============================================================================
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  logger.debug('Message received', { type: msg.type });
-
-  // Existing handlers...
-  if (msg.type === 'GET_PAGE_TEXT') {
-    const text = extractPageText();
-    const title = document.title;
-    const url = window.location.href;
-
-    logger.debug('Extracted page text', {
-      textLength: text.length,
-      title,
-      url
-    });
-
-    sendResponse({ ok: true, text, title, url });
-    return true;
-  }
-
-  if (msg.type === 'PING') {
-    sendResponse({ ok: true });
-    return true;
-  }
-
-  // NEW: Assistant panel controls
-  if (msg.type === 'OPEN_ASSISTANT_PANEL') {
-    createAssistantPanel();
-    sendResponse({ ok: true });
-    return true;
-  }
-
-  if (msg.type === 'CLOSE_ASSISTANT_PANEL') {
-    removeAssistantPanel();
-    sendResponse({ ok: true });
-    return true;
-  }
-
-  if (msg.type === 'TOGGLE_ASSISTANT_PANEL') {
-    toggleAssistantPanel();
-    sendResponse({ ok: true });
-    return true;
-  }
-
-  if (msg.type === 'GET_SELECTION') {
-    const selection = getSelectedText();
-    sendResponse({ ok: true, text: selection });
-    return true;
-  }
-
-  // Existing handlers continue below...
-  if (msg.type === 'HIGHLIGHT_CLAIMS') {
-    // ... existing code
-  }
-
-  // ... rest of existing handlers
-});
+// Note: Second duplicate listener removed - all handlers consolidated above
 
 logger.debug('AI Assistant panel support loaded');
 
