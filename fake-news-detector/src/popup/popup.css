@@ -1,86 +1,449 @@
+/* ============================================================================
+   APPLE-STYLE POPUP CSS
+   Border radius: 12-20px (Apple standard)
+   ============================================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   width: 400px;
-  margin: 0;
-  padding: 16px;
-  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 500px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
   font-size: 14px;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  -webkit-font-smoothing: antialiased;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  height: 100%;
 }
 
-h1 {
-  margin: 0;
-  font-size: 18px;
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px 16px;
+  border-radius: 0 0 20px 20px;
+  color: white;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 20px;
   font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
 }
 
-#status {
-  padding: 8px;
-  background: #f5f5f5;
-  border-radius: 4px;
+.subtitle {
   font-size: 12px;
+  opacity: 0.9;
+  font-weight: 400;
 }
 
-.toggle-section {
-  padding: 8px;
-  background: #f9f9f9;
-  border-radius: 4px;
+/* ============================================================================
+   TAB NAVIGATION
+   ============================================================================ */
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 16px 0 16px;
+  background: #f5f5f7;
 }
 
-.toggle-section label {
+.tab {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-button {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  border: none;
   background: white;
+  border-radius: 16px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6e6e73;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-button:hover {
-  background: #f5f5f5;
+.tab:hover {
+  background: #fafafa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-#result {
-  margin-top: 12px;
+.tab.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
 }
 
-.section {
-  margin-bottom: 12px;
+.tab-icon {
+  font-size: 16px;
 }
 
-.section h3 {
-  margin: 0 0 4px 0;
-  font-size: 14px;
+.tab-label {
+  font-size: 13px;
   font-weight: 600;
 }
 
-.section > div {
-  padding: 8px;
-  background: #f9f9f9;
-  border-radius: 4px;
-  font-size: 12px;
+/* ============================================================================
+   TAB PANELS
+   ============================================================================ */
+
+.tab-panels {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
 }
 
-#score {
-  font-size: 24px;
-  font-weight: bold;
+.tab-panel {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   STATUS
+   ============================================================================ */
+
+.status {
+  padding: 12px 16px;
+  background: white;
+  border-radius: 16px;
   text-align: center;
+  font-size: 13px;
+  color: #6e6e73;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* ============================================================================
+   QUICK INFO (Cached Score)
+   ============================================================================ */
+
+.quick-info {
+  margin-bottom: 16px;
+}
+
+.score-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.score-badge {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
+.progress-ring {
+  transform: rotate(-90deg);
+}
+
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.5s ease;
+  stroke-dasharray: 213.628;
+  stroke-dashoffset: 213.628;
+  stroke-linecap: round;
+}
+
+.score-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d1d1f;
+}
+
+.score-info {
+  flex: 1;
+}
+
+.verdict {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 4px;
+}
+
+.meta {
+  font-size: 12px;
+  color: #6e6e73;
+}
+
+/* ============================================================================
+   MAIN ACTION
+   ============================================================================ */
+
+.main-action {
+  margin-bottom: 16px;
+}
+
+.btn-primary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 24px;
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+.btn-text {
+  font-size: 15px;
+}
+
+/* ============================================================================
+   QUICK ACTIONS
+   ============================================================================ */
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.btn-secondary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border: 1.5px solid #e5e5ea;
+  background: white;
+  border-radius: 14px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1d1d1f;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #f5f5f7;
+  border-color: #d1d1d6;
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary .btn-icon {
+  font-size: 20px;
+}
+
+/* ============================================================================
+   AI TOOLS LIST
+   ============================================================================ */
+
+.tools-intro {
+  text-align: center;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.tools-intro p {
+  font-size: 13px;
+  color: #6e6e73;
+  line-height: 1.5;
+}
+
+.tools-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.tool-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: white;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.tool-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.tool-icon {
+  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f5f7 0%, #e5e5ea 100%);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.tool-content {
+  flex: 1;
+}
+
+.tool-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 2px;
+}
+
+.tool-desc {
+  font-size: 12px;
+  color: #6e6e73;
+}
+
+.tool-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.green {
+  background: #30d158;
+  box-shadow: 0 0 8px rgba(48, 209, 88, 0.4);
+}
+
+.status-dot.blue {
+  background: #0a84ff;
+  box-shadow: 0 0 8px rgba(10, 132, 255, 0.4);
+}
+
+.tool-hint {
+  font-size: 10px;
+  color: #86868b;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================================================
+   TOOLS TIP
+   ============================================================================ */
+
+.tools-tip {
+  padding: 16px;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe8cc 100%);
+  border-radius: 16px;
+  font-size: 12px;
+  color: #1d1d1f;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.tools-tip strong {
+  font-weight: 600;
+}
+
+/* ============================================================================
+   SCROLLBAR (macOS style)
+   ============================================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d1d6;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c7c7cc;
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.loading {
+  animation: pulse 1.5s ease-in-out infinite;
 }
