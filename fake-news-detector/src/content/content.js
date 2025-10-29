@@ -247,6 +247,225 @@ function hideTooltip() {
 }
 
 // ============================================================================
+// TRANSLATION OVERLAY
+// ============================================================================
+
+const OVERLAY_ID = 'fnd-translation-overlay';
+
+function showTranslationOverlay(text) {
+  // Remove existing overlay
+  const existingOverlay = document.getElementById(OVERLAY_ID);
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+
+  // Create overlay container
+  const overlay = document.createElement('div');
+  overlay.id = OVERLAY_ID;
+  overlay.className = 'fnd-translation-overlay';
+
+  // Create content
+  const content = document.createElement('div');
+  content.className = 'fnd-translation-content';
+  content.textContent = text;
+
+  // Create close button
+  const closeButton = document.createElement('button');
+  closeButton.className = 'fnd-translation-close';
+  closeButton.textContent = '×';
+  closeButton.onclick = () => overlay.remove();
+
+  // Assemble
+  overlay.appendChild(content);
+  overlay.appendChild(closeButton);
+  document.body.appendChild(overlay);
+}
+
+
+// ============================================================================
+// QUICK REPLY ASSISTANT
+// ============================================================================
+
+function injectQuickReplyButton(targetNode) {
+  const replyButton = document.createElement('button');
+  replyButton.textContent = 'Quick Reply';
+  replyButton.className = 'fnd-quick-reply-button';
+
+  replyButton.onclick = async () => {
+    const emailBody = getEmailBody();
+
+    chrome.runtime.sendMessage({
+      type: 'QUICK_REPLY_REQUEST',
+      data: {
+        text: emailBody
+      }
+    }, (response) => {
+      if (response.ok) {
+        displayQuickReplies(response.replies, targetNode);
+      }
+    });
+  };
+
+  targetNode.appendChild(replyButton);
+}
+
+const observer = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
+      if (node.nodeType === 1) { // ELEMENT_NODE
+        // Gmail compose window
+        if (window.location.hostname === 'mail.google.com') {
+            const composeWindow = node.querySelector('.gA.gt');
+            if (composeWindow && !composeWindow.querySelector('.fnd-quick-reply-button')) {
+              injectQuickReplyButton(composeWindow);
+            }
+        }
+        // Outlook compose window
+        if (window.location.hostname === 'outlook.live.com') {
+            const composeWindow = node.querySelector('[aria-label="Message body"]');
+            if (composeWindow && !composeWindow.querySelector('.fnd-quick-reply-button')) {
+                injectQuickReplyButton(composeWindow.parentElement);
+            }
+        }
+      }
+    }
+  }
+});
+
+function getEmailBody() {
+    if (window.location.hostname === 'mail.google.com') {
+        const emailContainer = document.querySelector('.adn.ads');
+        return emailContainer ? emailContainer.innerText : '';
+    }
+    if (window.location.hostname === 'outlook.live.com') {
+        const emailContainer = document.querySelector('[aria-label="Message body"]');
+        return emailContainer ? emailContainer.innerText : '';
+    }
+    return '';
+}
+
+function startQuickReplyObserver() {
+  if (window.location.hostname === 'mail.google.com' || window.location.hostname === 'outlook.live.com') {
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+}
+
+// ============================================================================
+// CONTENT PROOFREADER
+// ============================================================================
+
+function injectProofreaderIcon(textarea) {
+  const icon = document.createElement('button');
+  icon.textContent = 'PR'; // Placeholder for an icon
+  icon.className = 'fnd-proofreader-icon';
+
+  icon.onclick = () => {
+    showProofreaderUI(textarea);
+  };
+
+  textarea.parentNode.insertBefore(icon, textarea.nextSibling);
+}
+
+const proofreaderObserver = new MutationObserver((mutations) => {
+  for (const mutation of mutations) {
+    for (const node of mutation.addedNodes) {
+      if (node.nodeType === 1) { // ELEMENT_NODE
+        if (node.tagName === 'TEXTAREA') {
+          injectProofreaderIcon(node);
+        }
+        const textareas = node.querySelectorAll('textarea');
+        textareas.forEach(injectProofreaderIcon);
+      }
+    }
+  }
+});
+
+function startProofreaderObserver() {
+  proofreaderObserver.observe(document.body, { childList: true, subtree: true });
+  // Also check for existing textareas
+  document.querySelectorAll('textarea').forEach(injectProofreaderIcon);
+}
+
+function showProofreaderUI(textarea) {
+    const existingUI = document.querySelector('.fnd-proofreader-ui');
+    if (existingUI) {
+        existingUI.remove();
+    }
+
+    const ui = document.createElement('div');
+    ui.className = 'fnd-proofreader-ui';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Type a prompt to generate text...';
+
+    const proofreadButton = document.createElement('button');
+    proofreadButton.textContent = 'Proofread';
+    proofreadButton.onclick = () => {
+        chrome.runtime.sendMessage({
+            type: 'PROOFREAD_TEXT_REQUEST',
+            data: { text: textarea.value, action: 'proofread' }
+        }, (response) => {
+            if (response.ok) {
+                textarea.value = response.newText;
+            }
+            ui.remove();
+        });
+    };
+
+    const generateButton = document.createElement('button');
+    generateButton.textContent = 'Generate';
+    generateButton.onclick = () => {
+        chrome.runtime.sendMessage({
+            type: 'PROOFREAD_TEXT_REQUEST',
+            data: { text: textarea.value, action: input.value }
+        }, (response) => {
+            if (response.ok) {
+                textarea.value = response.newText;
+            }
+            ui.remove();
+        });
+    };
+
+    ui.appendChild(input);
+    ui.appendChild(proofreadButton);
+    ui.appendChild(generateButton);
+    textarea.parentNode.insertBefore(ui, textarea.nextSibling);
+}
+
+startProofreaderObserver();
+
+function displayQuickReplies(replies, targetNode) {
+  const container = document.createElement('div');
+  container.className = 'fnd-quick-replies-container';
+
+  replies.forEach(reply => {
+    const button = document.createElement('button');
+    button.textContent = reply.reply;
+    button.className = 'fnd-quick-reply-suggestion';
+    button.onclick = () => {
+      let editableDiv;
+      if (window.location.hostname === 'mail.google.com') {
+        editableDiv = document.querySelector('.Am.Al.editable'); // Gmail specific
+      } else if (window.location.hostname === 'outlook.live.com') {
+        editableDiv = document.querySelector('[aria-label="Message body"]'); // Outlook specific
+      }
+
+      if(editableDiv) {
+        editableDiv.innerText = reply.reply;
+      }
+      container.remove();
+    };
+    container.appendChild(button);
+  });
+
+  targetNode.appendChild(container);
+}
+
+startQuickReplyObserver();
+
+
+// ============================================================================
 // MESSAGE HANDLER
 // ============================================================================
 
@@ -269,6 +488,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       });
     } catch (error) {
       console.error('Text extraction failed:', error);
+      sendResponse({ ok: false, error: error.message });
+    }
+    return true;
+  }
+
+  if (msg.type === 'DISPLAY_TRANSLATION_RESULT') {
+    try {
+      showTranslationOverlay(msg.data.translation);
+      sendResponse({ ok: true });
+    } catch (error) {
+      console.error('Show translation overlay failed:', error);
       sendResponse({ ok: false, error: error.message });
     }
     return true;

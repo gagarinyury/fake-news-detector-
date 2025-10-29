@@ -34,3 +34,128 @@
   z-index: 999999;
   pointer-events: none;
 }
+
+/* ============================================================================ */
+/* TRANSLATION OVERLAY                                                          */
+/* ============================================================================ */
+
+.fnd-translation-overlay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999999;
+  background-color: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  max-width: 350px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  color: #202124;
+  animation: fnd-fade-in 0.3s ease-out;
+}
+
+.fnd-translation-content {
+  line-height: 1.5;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.fnd-translation-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #5f6368;
+  padding: 0;
+  line-height: 1;
+}
+
+.fnd-translation-close:hover {
+  color: #202124;
+}
+
+@keyframes fnd-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================ */
+/* QUICK REPLY ASSISTANT                                                        */
+/* ============================================================================ */
+
+.fnd-quick-reply-button {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-left: 10px;
+}
+
+.fnd-quick-replies-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.fnd-quick-reply-suggestion {
+  background-color: #f1f3f4;
+  border: 1px solid #dadce0;
+  padding: 8px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* ============================================================================ */
+/* CONTENT PROOFREADER                                                          */
+/* ============================================================================ */
+
+.fnd-proofreader-icon {
+  background-color: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  cursor: pointer;
+  position: relative;
+  left: -30px;
+  top: 5px;
+}
+
+.fnd-proofreader-ui {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.fnd-proofreader-ui input {
+  flex-grow: 1;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.fnd-proofreader-ui button {
+  background-color: #f1f3f4;
+  border: 1px solid #dadce0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
