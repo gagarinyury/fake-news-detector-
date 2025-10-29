@@ -682,3 +682,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 logger.debug('AI Assistant panel support loaded');
+
+// Listen for messages from iframe
+window.addEventListener('message', (event) => {
+  // Security check
+  if (event.source !== assistantPanelIframe?.contentWindow) {
+    return;
+  }
+
+  if (event.data.type === 'CLOSE_ASSISTANT_PANEL') {
+    removeAssistantPanel();
+  }
+});

@@ -87,7 +87,12 @@ function getSelectedText() {
   // Get selection from parent page
   return new Promise((resolve) => {
     chrome.runtime.sendMessage({ type: 'GET_SELECTION' }, (response) => {
-      resolve(response?.text || '');
+      if (chrome.runtime.lastError) {
+        console.warn('GET_SELECTION failed:', chrome.runtime.lastError.message);
+        resolve('');
+      } else {
+        resolve(response?.text || '');
+      }
     });
   });
 }
@@ -291,7 +296,8 @@ document.getElementById('btn-gen-reddit')?.addEventListener('click', () => gener
 // ============================================================================
 
 document.getElementById('btn-close').addEventListener('click', () => {
-  chrome.runtime.sendMessage({ type: 'CLOSE_ASSISTANT_PANEL' });
+  // Send to parent window instead of background
+  window.parent.postMessage({ type: 'CLOSE_ASSISTANT_PANEL' }, '*');
 });
 
 // ============================================================================
@@ -304,6 +310,14 @@ document.getElementById('btn-close').addEventListener('click', () => {
   // Detect and update context
   updateContextUI();
 
-  // Initialize AI in background
-  chrome.runtime.sendMessage({ type: 'INIT_AI' });
+  // Initialize AI in background (with error handling)
+  try {
+    chrome.runtime.sendMessage({ type: 'INIT_AI' }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.warn('AI init message failed (non-critical):', chrome.runtime.lastError.message);
+      }
+    });
+  } catch (error) {
+    console.warn('Failed to send INIT_AI message:', error);
+  }
 })();
