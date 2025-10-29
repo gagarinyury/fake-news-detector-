@@ -528,3 +528,157 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 logger.debug('Content script ready');
+
+// ============================================================================
+// AI ASSISTANT FLOATING PANEL
+// ============================================================================
+
+let assistantPanelIframe = null;
+
+function createAssistantPanel() {
+  if (assistantPanelIframe) {
+    return; // Already exists
+  }
+
+  logger.debug('Creating AI Assistant panel');
+
+  // Create iframe container
+  const container = document.createElement('div');
+  container.id = 'fnd-assistant-container';
+  container.style.cssText = `
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 420px;
+    height: 100vh;
+    z-index: 2147483647;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+    border-radius: 16px 0 0 16px;
+    overflow: hidden;
+    background: white;
+    animation: slideIn 0.3s ease-out;
+  `;
+
+  // Add slide-in animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Create iframe
+  const iframe = document.createElement('iframe');
+  iframe.id = 'fnd-assistant-iframe';
+  iframe.src = chrome.runtime.getURL('src/assistant-panel/panel.html');
+  iframe.style.cssText = `
+    width: 100%;
+    height: 100%;
+    border: none;
+  `;
+
+  container.appendChild(iframe);
+  document.body.appendChild(container);
+  assistantPanelIframe = iframe;
+
+  logger.info('AI Assistant panel created');
+}
+
+function removeAssistantPanel() {
+  const container = document.getElementById('fnd-assistant-container');
+  if (container) {
+    container.style.animation = 'slideOut 0.3s ease-out';
+    setTimeout(() => {
+      container.remove();
+      assistantPanelIframe = null;
+      logger.info('AI Assistant panel removed');
+    }, 300);
+  }
+}
+
+function toggleAssistantPanel() {
+  if (assistantPanelIframe) {
+    removeAssistantPanel();
+  } else {
+    createAssistantPanel();
+  }
+}
+
+// ============================================================================
+// SELECTION HELPER
+// ============================================================================
+
+function getSelectedText() {
+  return window.getSelection().toString().trim();
+}
+
+// ============================================================================
+// MESSAGE HANDLERS - ADD ASSISTANT PANEL SUPPORT
+// ============================================================================
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  logger.debug('Message received', { type: msg.type });
+
+  // Existing handlers...
+  if (msg.type === 'GET_PAGE_TEXT') {
+    const text = extractPageText();
+    const title = document.title;
+    const url = window.location.href;
+
+    logger.debug('Extracted page text', {
+      textLength: text.length,
+      title,
+      url
+    });
+
+    sendResponse({ ok: true, text, title, url });
+    return true;
+  }
+
+  if (msg.type === 'PING') {
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  // NEW: Assistant panel controls
+  if (msg.type === 'OPEN_ASSISTANT_PANEL') {
+    createAssistantPanel();
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (msg.type === 'CLOSE_ASSISTANT_PANEL') {
+    removeAssistantPanel();
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (msg.type === 'TOGGLE_ASSISTANT_PANEL') {
+    toggleAssistantPanel();
+    sendResponse({ ok: true });
+    return true;
+  }
+
+  if (msg.type === 'GET_SELECTION') {
+    const selection = getSelectedText();
+    sendResponse({ ok: true, text: selection });
+    return true;
+  }
+
+  // Existing handlers continue below...
+  if (msg.type === 'HIGHLIGHT_CLAIMS') {
+    // ... existing code
+  }
+
+  // ... rest of existing handlers
+});
+
+logger.debug('AI Assistant panel support loaded');

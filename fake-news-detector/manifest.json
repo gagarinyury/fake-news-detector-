@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "On-device AI fact-checking: credibility scores, red flags, claim highlighting. Powered by Chrome Built-in AI (Gemini Nano).",
   "minimum_chrome_version": "138",
-  "action": { "default_popup": "src/popup/popup.html", "default_title": "Analyze page" },
+  "action": { "default_title": "Open AI Assistant" },
   "side_panel": {
     "default_path": "src/sidepanel/panel.html"
   },
@@ -30,5 +30,13 @@
     ],
     "css": ["src/content/overlay.css"],
     "run_at": "document_idle"
+  }],
+  "web_accessible_resources": [{
+    "resources": [
+      "src/assistant-panel/panel.html",
+      "src/assistant-panel/panel.css",
+      "src/assistant-panel/panel.js"
+    ],
+    "matches": ["<all_urls>"]
   }]
 }

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AI Assistant</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <div class="panel-container">
+
+    <!-- Header -->
+    <div class="panel-header">
+      <div class="header-title">
+        <span class="logo">✨</span>
+        <h1>AI Assistant</h1>
+      </div>
+      <button id="btn-close" class="btn-close" title="Close panel">✕</button>
+    </div>
+
+    <!-- Context indicator -->
+    <div class="context-badge" id="context-badge">
+      <span class="context-icon">🌐</span>
+      <span class="context-text">Web Page</span>
+    </div>
+
+    <!-- Tools Section -->
+    <div class="tools-section">
+
+      <!-- News Analysis (only on news sites) -->
+      <div class="tool-card" id="tool-news-analysis" style="display: none;">
+        <div class="tool-header">
+          <span class="tool-icon">📰</span>
+          <h3>News Analysis</h3>
+        </div>
+        <p class="tool-description">Analyze article credibility with AI</p>
+        <button class="btn-primary" id="btn-analyze-news">
+          <span>Analyze Article</span>
+        </button>
+        <div id="news-result" class="result-box" style="display: none;"></div>
+      </div>
+
+      <!-- Summarize Selection -->
+      <div class="tool-card" id="tool-summarize">
+        <div class="tool-header">
+          <span class="tool-icon">📄</span>
+          <h3>Summarize</h3>
+        </div>
+        <p class="tool-description">Select text and generate summary</p>
+        <button class="btn-primary" id="btn-summarize">
+          <span>Summarize Selection</span>
+        </button>
+        <div id="summarize-result" class="result-box" style="display: none;"></div>
+      </div>
+
+      <!-- Translator -->
+      <div class="tool-card" id="tool-translate">
+        <div class="tool-header">
+          <span class="tool-icon">🌍</span>
+          <h3>Translate</h3>
+        </div>
+        <p class="tool-description">Translate selected text locally</p>
+        <div class="btn-group">
+          <button class="btn-secondary" id="btn-translate-ru">To Russian</button>
+          <button class="btn-secondary" id="btn-translate-en">To English</button>
+        </div>
+        <div id="translate-result" class="result-box" style="display: none;"></div>
+      </div>
+
+      <!-- Email Assistant (only in Gmail/Outlook) -->
+      <div class="tool-card" id="tool-email" style="display: none;">
+        <div class="tool-header">
+          <span class="tool-icon">✉️</span>
+          <h3>Email Assistant</h3>
+        </div>
+        <p class="tool-description">Generate quick replies</p>
+        <button class="btn-primary" id="btn-quick-reply">
+          <span>Generate Replies</span>
+        </button>
+        <div id="email-result" class="result-box" style="display: none;"></div>
+      </div>
+
+      <!-- Proofreader -->
+      <div class="tool-card" id="tool-proofread">
+        <div class="tool-header">
+          <span class="tool-icon">✍️</span>
+          <h3>Proofreader</h3>
+        </div>
+        <p class="tool-description">Fix grammar and spelling</p>
+        <textarea id="proofread-input" class="input-textarea" placeholder="Paste text to check..."></textarea>
+        <button class="btn-primary" id="btn-proofread">
+          <span>Check Text</span>
+        </button>
+        <div id="proofread-result" class="result-box" style="display: none;"></div>
+      </div>
+
+      <!-- Social Post Generator (only after news analysis) -->
+      <div class="tool-card" id="tool-social" style="display: none;">
+        <div class="tool-header">
+          <span class="tool-icon">🚀</span>
+          <h3>Social Post</h3>
+        </div>
+        <p class="tool-description">Generate posts for social media</p>
+        <div class="btn-group">
+          <button class="btn-secondary" id="btn-gen-twitter">Twitter</button>
+          <button class="btn-secondary" id="btn-gen-instagram">Instagram</button>
+          <button class="btn-secondary" id="btn-gen-reddit">Reddit</button>
+        </div>
+        <div id="social-result" class="result-box" style="display: none;"></div>
+      </div>
+
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+      <div class="spinner"></div>
+      <p id="loading-text">Processing...</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="panel-footer">
+      <span class="footer-text">Powered by Chrome Built-in AI</span>
+    </div>
+
+  </div>
+
+  <script type="module" src="panel.js"></script>
+</body>
+</html>

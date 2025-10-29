@@ -729,3 +729,30 @@ async function handleClearHighlights(tabId) {
     );
   });
 }
+
+// ============================================================================
+// AI ASSISTANT PANEL HANDLERS
+// ============================================================================
+
+// Handle icon click - open assistant panel instead of popup
+chrome.action.onClicked.addListener(async (tab) => {
+  try {
+    logger.debug('Extension icon clicked', { tabId: tab.id });
+    
+    // Send message to content script to toggle panel
+    await chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_ASSISTANT_PANEL' });
+    
+    logger.info('Assistant panel toggled');
+  } catch (error) {
+    logger.error('Failed to toggle assistant panel', { error: error.message });
+    
+    // Fallback: open side panel
+    try {
+      await chrome.sidePanel.open({ tabId: tab.id });
+    } catch (fallbackError) {
+      logger.error('Fallback to side panel failed', { error: fallbackError.message });
+    }
+  }
+});
+
+logger.debug('AI Assistant panel handlers registered');
